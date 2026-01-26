@@ -4,7 +4,7 @@ This document explains how the weekly structured check-in Slack integration work
 
 ## Overview
 
-The system automatically posts weekly check-in reminders to a Slack channel (default: `#finchly-testing`). Team members click a button to start a voice check-in, and when they're done, a summary is posted back to the Slack thread.
+The system automatically posts weekly check-in reminders to a Slack channel. Team members click a button to start a voice check-in, and when they're done, a summary is posted back to the Slack thread.
 
 ## Architecture
 
@@ -66,10 +66,10 @@ NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 
 ```bash
 # Slack team name (for display)
-SLACK_TEAM_NAME=Finchly Team
+SLACK_TEAM_NAME=Your Team
 
-# Channel to post reminders to (default: finchly-testing)
-SLACK_CHECKIN_CHANNEL=finchly-testing
+# Channel to post reminders to (default: general)
+SLACK_CHECKIN_CHANNEL=general
 
 # Channel ID (if you want to hardcode it instead of looking up by name)
 SLACK_CHECKIN_CHANNEL_ID=C01234567
@@ -142,14 +142,14 @@ curl -X POST http://localhost:3000/api/slack/checkin-complete \
 
 1. Go to [api.slack.com/apps](https://api.slack.com/apps)
 2. Click "Create New App" > "From scratch"
-3. Name it "Finchly Check-ins" and select your workspace
+3. Name it "Brief Check-ins" and select your workspace
 
 ### 2. Configure Bot Permissions
 
 Go to "OAuth & Permissions" and add these **Bot Token Scopes**:
 - `chat:write` - Post messages to channels
-- `conversations:read` - List and view channels (replaces legacy `channels:read` and `groups:read`)
-- `channels:join` - Join public channels (optional, if bot needs to auto-join)
+- `conversations:read` - List and view channels
+- `channels:join` - Join public channels (optional)
 
 ### 3. Install to Workspace
 
@@ -172,7 +172,7 @@ Or check your workspace URL: `yourteam.slack.com` → Team ID is in the URL
 
 In Slack:
 ```
-/invite @Finchly Check-ins
+/invite @Brief Check-ins
 ```
 
 ### 6. Configure Environment Variables
@@ -190,4 +190,5 @@ Deploy to Vercel. The cron job will automatically be configured from `vercel.jso
 - [ ] Remind individual users who haven't completed check-ins
 - [ ] Weekly digest with all team check-ins
 - [ ] Thread responses for questions/discussion
-- [ ] Slash command to start check-in (`/checkin`)
+- [ ] Slash command to start check-in (`/brief`)
+- [ ] Integration with Gap Detection Engine (smart questions based on tool data)

@@ -268,7 +268,6 @@ That's the MVP. Everything else is V2.
 - **Filter Flows** — Route knowledge to different collections
 - **Nests** — Curated collections of knowledge
 - **Web Dashboard** — Visual interface for browsing
-- **Check-ins** — "Fill in the gaps" experience
 - **Multiple Channels** — Watch more than one channel
 - **Multi-workspace** — Teams and authentication
 - **Voice Interface** — Talk to Finchly
