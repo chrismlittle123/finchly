@@ -1,18 +1,18 @@
-# Brief MVP: One Month Build
+# Brief MVP: Two Week Build
 
 ## What It Is
 
-A Slack app that pulls from Linear, shows you what it already knows, asks only the gaps, and posts status updates to a team channel.
+A voice agent that asks your team a fixed set of questions, transcribes their answers, generates a report, and saves it to Notion.
 
-**That's it.** No web app. No separate dashboard. Everything lives in Slack where your team already works.
+**That's it.** No integrations. No smart questions. No dashboards. Just voice → report → Notion.
 
 ---
 
 ## The Pitch
 
-> "Brief already knows I closed 8 tickets. It just asked why AUTH-42 is still blocked."
+> "Talk through your update in 5 minutes. Brief writes the report and puts it in Notion."
 >
-> 3 minutes instead of a 30-minute status meeting. All in Slack.
+> No typing. No forms. Just talk.
 
 ---
 
@@ -20,133 +20,52 @@ A Slack app that pulls from Linear, shows you what it already knows, asks only t
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│     Linear      │ ──▶ │  Gap Detection  │ ──▶ │ Smart Questions │
-│  (what's known) │     │  (what's missing)│     │   (2-4 max)     │
+│    Template     │ ──▶ │   Voice Agent   │ ──▶ │     Report      │
+│   (questions)   │     │ (asks + records)│     │   (markdown)    │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
                                                         │
                                                         ▼
                                                ┌─────────────────┐
-                                               │  Slack Check-in │
-                                               │  (DM or thread) │
-                                               └─────────────────┘
-                                                        │
-                                                        ▼
-                                               ┌─────────────────┐
-                                               │ #brief-status   │
-                                               │ (team channel)  │
+                                               │     Notion      │
+                                               │  (saved page)   │
                                                └─────────────────┘
 ```
-
----
-
-## Why Slack-Only?
-
-| Web App Problems | Slack-Only Benefits |
-|------------------|---------------------|
-| Another login | Already authenticated |
-| Another tab to check | Already open all day |
-| Notification fatigue | Native Slack notifications |
-| Adoption friction | Zero new tools to learn |
-| Build complexity | Ship faster |
-
-The "dashboard" is just a Slack channel. Managers already watch Slack.
 
 ---
 
 ## Features
 
-### 1. Linear Integration
-- Connect to one Linear team
-- Pull: tasks completed, in progress, blocked, created
-- Track: what changed since last check-in
-
-### 2. Gap Detection (Hardcoded Logic)
-Simple rules to identify what's missing:
-
-| Signal | Gap Question |
-|--------|--------------|
-| Task blocked > 3 days | "What's the situation with [task]?" |
-| New tasks added mid-cycle | "Was there a scope change?" |
-| No activity on assigned tasks | "Any blockers I should know about?" |
-| Approaching deadline | "How are you feeling about [deadline]?" |
-
-No ML. Just if/then logic based on Linear data.
-
-### 3. Check-in Experience (Slack DM)
-Weekly DM from Brief:
+### 1. Question Template
+Fixed questions based on your template. Example:
 
 ```
-📊 Brief Check-in
-
-Here's what I know from Linear:
-• ✅ 8 tasks completed this week
-• 🔄 2 in progress
-• 🚫 1 blocked (AUTH-42, 5 days)
-
-I just need to know:
-
-1. AUTH-42 has been blocked for 5 days — what's happening there?
-2. How confident are you about Friday's deadline? (1-5)
-
-[🎙️ Voice] [⌨️ Type]
+1. What did you work on this week?
+2. What's your progress percentage? (0-100%)
+3. Are you on track for your deadline?
+4. Any blockers or challenges?
+5. What's planned for next week?
+6. Anything else to flag?
 ```
 
-User responds inline. Brief summarizes and posts to team channel.
+No AI-generated questions. Just the template, asked verbally.
 
-### 4. Team Status Channel (#brief-status)
-All check-in summaries post here:
+### 2. Voice Agent
+- User clicks a link or Slack button to start
+- Agent asks each question one by one
+- User speaks their answer
+- Agent transcribes and moves to next question
+- ~5 minutes total
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  #brief-status                                                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  📊 Weekly Status — Week of Jan 26                              │
-│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━                       │
-│                                                                 │
-│  Sarah     ✅ On track                                          │
-│            AUTH-42 escalated to vendor, expects Wed resolution  │
-│                                                                 │
-│  Marcus    🚫 Blocked                                           │
-│            Waiting on external API credentials                  │
-│                                                                 │
-│  James     ⚠️ Check-in pending                                  │
-│                                                                 │
-│  Lisa      ✅ On track                                          │
-│            Ahead of schedule on design specs                    │
-│                                                                 │
-│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━                       │
-│  3/4 checked in · 1 blocked · 0 at risk                        │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+### 3. Report Generation
+After all questions answered:
+- Claude formats responses into a clean markdown report
+- Includes: summary, status, blockers, next steps
+- Structured and readable
 
-### 5. Slack Canvas (Weekly Overview)
-Pin a Canvas to the channel that auto-updates:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  📋 Brief: Team Status                              Live View   │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  THIS WEEK                                                      │
-│                                                                 │
-│  ┌──────────┬────────────┬─────────────────────────────────┐   │
-│  │ Person   │ Status     │ Summary                         │   │
-│  ├──────────┼────────────┼─────────────────────────────────┤   │
-│  │ Sarah    │ ✅ On track │ AUTH-42 escalated              │   │
-│  │ Marcus   │ 🚫 Blocked  │ Waiting on API creds           │   │
-│  │ James    │ ⚠️ Pending  │ —                              │   │
-│  │ Lisa     │ ✅ On track │ Ahead on design                │   │
-│  └──────────┴────────────┴─────────────────────────────────┘   │
-│                                                                 │
-│  BLOCKERS                                                       │
-│  • Marcus: External API credentials (3 days)                   │
-│                                                                 │
-│  Last updated: Today, 5:42pm                                   │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+### 4. Notion Export
+- Report saved as a new Notion page
+- In a designated "Weekly Updates" database
+- Tagged with person name and date
 
 ---
 
@@ -154,13 +73,12 @@ Pin a Canvas to the channel that auto-updates:
 
 | Feature | Status |
 |---------|--------|
-| Web dashboard | ❌ Not needed — Slack channel is the dashboard |
-| GitHub integration | V2 — Linear only for now |
-| Notion/Figma integration | V2 |
-| Smart timing | V2 — fixed weekly schedule |
-| AI-generated questions | V2 — template-based for now |
-| Multiple teams | V2 — one team hardcoded |
-| Mobile app | ❌ Not needed — Slack mobile works |
+| Linear/GitHub integration | V2 — no repo connections for now |
+| Gap detection / smart questions | V2 — fixed template only |
+| Slack channel posting | V2 — just Notion output |
+| Dashboard | V2 — view reports in Notion |
+| Multiple templates | V2 — one template hardcoded |
+| Team rollup / digest | V2 — individual reports only |
 
 ---
 
@@ -168,255 +86,231 @@ Pin a Canvas to the channel that auto-updates:
 
 | Layer | Tech |
 |-------|------|
-| **Slack** | Bolt SDK (Node.js) |
-| **Backend** | Next.js API routes (or plain Node) |
-| **Database** | Postgres (Supabase) |
-| **Linear** | Linear SDK / GraphQL API |
-| **LLM** | Claude API (summarizing responses) |
-| **Voice** | Web Speech API or Slack Huddle link |
+| **Voice** | LiveKit Agents (or Vapi) |
+| **Backend** | Next.js API routes |
+| **LLM** | Claude API (report generation) |
+| **Output** | Notion API |
 | **Hosting** | Vercel |
+| **Trigger** | Slack button or direct link |
 
-No frontend framework needed. No React. No web UI.
+Minimal stack. No database needed for MVP (Notion is the database).
 
 ---
 
-## Database Schema
+## User Flow
 
-```sql
--- Team members
-CREATE TABLE members (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slack_user_id TEXT UNIQUE,
-  slack_team_id TEXT,
-  linear_user_id TEXT,
-  name TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Check-ins
-CREATE TABLE checkins (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  member_id UUID REFERENCES members(id),
-
-  -- Linear context at time of check-in
-  linear_snapshot JSONB,
-
-  -- Questions and answers
-  questions JSONB,  -- [{question: "...", answer: "..."}]
-
-  -- Status
-  status TEXT,  -- 'on_track', 'at_risk', 'blocked'
-  confidence INT,  -- 1-5
-
-  -- Summary (LLM-generated)
-  summary TEXT,
-
-  -- Slack references
-  slack_thread_ts TEXT,
-  slack_channel_id TEXT,
-
-  -- Metadata
-  week_of DATE,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Weekly summaries (for Canvas updates)
-CREATE TABLE weekly_summaries (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slack_team_id TEXT,
-  week_of DATE,
-  summary_data JSONB,  -- Aggregated team status
-  canvas_id TEXT,  -- Slack Canvas reference
-  created_at TIMESTAMP DEFAULT NOW()
-);
 ```
+1. User receives Slack DM: "Time for your weekly update"
+   [🎙️ Start Voice Update]
+
+2. User clicks → opens voice session
+
+3. Agent: "Hey! Let's do your weekly update. What did you work on this week?"
+   User: [speaks for 30-60 seconds]
+
+4. Agent: "Got it. What's your progress percentage?"
+   User: "About 75%"
+
+5. Agent: "Are you on track for the deadline?"
+   User: "Yeah, should be done by Friday"
+
+6. Agent: "Any blockers?"
+   User: "Waiting on API credentials from the vendor"
+
+7. Agent: "What's planned for next week?"
+   User: [speaks]
+
+8. Agent: "Anything else to flag?"
+   User: "Nope, that's it"
+
+9. Agent: "Great, I'll write up your report and save it to Notion. Done!"
+
+10. Report appears in Notion database
+```
+
+Total time: ~5 minutes of talking.
+
+---
+
+## Report Template (Output)
+
+```markdown
+# Weekly Update: Sarah Chen
+**Week of:** January 26, 2026
+**Status:** ✅ On Track
+**Progress:** 75%
+
+## Summary
+Continued work on the authentication module. Implemented OAuth flow
+and connected to the user database. Made good progress despite
+waiting on external API credentials.
+
+## This Week
+- Implemented OAuth authentication flow
+- Connected auth module to user database
+- Started integration testing
+
+## Blockers
+- ⚠️ Waiting on API credentials from vendor (escalated Monday)
+
+## Next Week
+- Complete integration testing
+- Begin documentation
+- Start on password reset flow
+
+## Notes
+On track for Friday deadline assuming API credentials arrive by Wednesday.
+
+---
+*Generated by Brief · January 26, 2026, 5:42pm*
+```
+
+---
+
+## Notion Setup
+
+### Database Structure
+Create a Notion database called "Weekly Updates" with:
+
+| Property | Type |
+|----------|------|
+| Title | Title (auto: "Update: {Name} - {Date}") |
+| Person | Select or Person |
+| Week Of | Date |
+| Status | Select (On Track / At Risk / Blocked) |
+| Progress | Number (%) |
+| Created | Created time |
+
+### API Integration
+- Create Notion integration
+- Share database with integration
+- Use Notion API to create pages
 
 ---
 
 ## API Routes
 
 ```
-POST /api/slack/events        -- Event subscription
-POST /api/slack/interactions  -- Button clicks
-POST /api/slack/commands      -- /brief command
+POST /api/slack/interactions  -- Handle "Start Update" button click
 
-POST /api/checkin/start       -- Init check-in with Linear data
-POST /api/checkin/respond     -- Save responses
-POST /api/checkin/complete    -- Summarize + post to channel
+POST /api/voice/session       -- Create LiveKit session
+POST /api/voice/complete      -- Called when voice session ends
 
-POST /api/canvas/update       -- Update weekly Canvas
-
-POST /api/cron/weekly-prompt  -- Send weekly reminders
-POST /api/cron/reminder       -- Nudge people who haven't checked in
+POST /api/report/generate     -- Generate markdown from transcript
+POST /api/notion/save         -- Save report to Notion
 ```
 
 ---
 
-## Slack App Configuration
+## Voice Agent Script
 
-### Bot Scopes Required
-```
-chat:write          -- Post messages
-chat:write.public   -- Post to public channels
-im:write            -- DM users
-im:history          -- Read DM responses
-users:read          -- Get user info
-channels:read       -- List channels
-canvases:write      -- Update Canvas (if using)
-commands            -- Slash commands
-```
+```typescript
+const questions = [
+  {
+    id: 'work_done',
+    ask: "What did you work on this week?",
+    followUp: "Got it.",
+  },
+  {
+    id: 'progress',
+    ask: "What's your progress percentage? Just give me a number.",
+    followUp: "Thanks.",
+  },
+  {
+    id: 'on_track',
+    ask: "Are you on track for your deadline?",
+    followUp: "Okay.",
+  },
+  {
+    id: 'blockers',
+    ask: "Any blockers or challenges I should know about?",
+    followUp: "Noted.",
+  },
+  {
+    id: 'next_week',
+    ask: "What's planned for next week?",
+    followUp: "Sounds good.",
+  },
+  {
+    id: 'other',
+    ask: "Anything else you want to flag?",
+    followUp: null,  // End of questions
+  },
+];
 
-### Event Subscriptions
-```
-message.im          -- User responds to check-in DM
-app_mention         -- @Brief mentions
-```
-
-### Slash Commands
-```
-/brief              -- Start a check-in manually
-/brief status       -- See your current status
-/brief team         -- See team overview (posts to you)
-```
-
----
-
-## Check-in Flow
-
-```
-1. Monday 2pm: Cron triggers weekly prompts
-2. For each team member:
-   a. Fetch their Linear data
-   b. Run gap detection → 2-4 questions
-   c. Send personalized Slack DM
-3. User clicks [Voice] or [Type]
-4. User answers questions (inline in DM)
-5. Brief generates summary via Claude
-6. Posts summary to #brief-status
-7. Updates weekly Canvas
-8. Wednesday: Nudge anyone who hasn't checked in
+// Agent flow:
+// 1. Greet user
+// 2. For each question: ask → wait for response → transcribe → acknowledge
+// 3. Thank user, end session
+// 4. Trigger report generation
 ```
 
 ---
 
-## Message Templates
+## Slack Integration (Trigger Only)
 
-### Check-in Prompt (DM)
+Just need a way to trigger the voice session:
+
+### Option A: Scheduled DM
 ```
-📊 *Weekly Check-in*
+📊 Weekly Update Time
 
-Here's what I pulled from Linear:
-• ✅ 8 tasks completed
-• 🔄 2 in progress
-• 🚫 1 blocked (AUTH-42)
+Ready to give your update? Takes about 5 minutes.
 
-*I just need to know:*
-1. AUTH-42 has been blocked for 5 days — what's happening?
-2. Confidence in Friday deadline? (1-5)
-
-Reply here or click below:
-[🎙️ Voice Check-in]
+[🎙️ Start Voice Update]
 ```
 
-### Check-in Response (User types in DM)
-```
-@user: AUTH-42 is waiting on the vendor API team. I escalated
-yesterday, expecting response by Wednesday. If that resolves,
-I'm confident we hit Friday. Confidence: 4
-```
+Button opens the voice session in browser.
 
-### Summary Posted to #brief-status
+### Option B: Slash Command
 ```
-✅ *Sarah* checked in
-
-*Status:* On track
-*Confidence:* 4/5
-*Summary:* AUTH-42 blocked on vendor API — escalated, expects
-Wednesday resolution. Confident about Friday if that clears.
-
-_From Linear: 8 tasks done, 2 in progress, 1 blocked_
+/brief
 ```
 
-### Nudge (Wednesday)
-```
-👋 Hey! Brief check-in is still waiting on you.
-
-Your team's counting on visibility. Takes 2 minutes:
-[✏️ Check in now]
-```
-
-### Weekly Digest (Friday)
-```
-📊 *Weekly Brief — Jan 26*
-
-*Team Status*
-✅ 3 on track
-🚫 1 blocked
-⚠️ 0 at risk
-
-*Blockers*
-• Marcus: External API credentials (resolved Thu)
-
-*Highlights*
-• Sarah: AUTH module shipped ahead of schedule
-• Lisa: Design specs complete, ready for eng
-
-_All 4 team members checked in this week_ 🎉
-```
+Returns a link to start the voice session.
 
 ---
 
-## One Month Timeline
+## Two Week Timeline
 
-### Week 1: Linear + Slack Setup
-- [ ] Create Slack app, install to workspace
-- [ ] Linear OAuth, connect to team
-- [ ] Fetch user's Linear data (tasks by status)
-- [ ] Basic Postgres schema on Supabase
-- [ ] Verify: can pull Linear data for each Slack user
+### Week 1: Voice + Transcription
+- [ ] Set up LiveKit (or Vapi) account
+- [ ] Create voice agent with question script
+- [ ] Test full question flow
+- [ ] Capture and store transcripts
+- [ ] Verify: can complete a voice session and get transcript
 
-### Week 2: Gap Detection + Check-in DM
-- [ ] Implement gap detection logic
-- [ ] Generate personalized questions
-- [ ] Send check-in DM with Linear context
-- [ ] Handle user responses (text in thread)
-- [ ] Verify: users receive and can respond to check-ins
-
-### Week 3: Summaries + Team Channel
-- [ ] Summarize responses via Claude
-- [ ] Post summaries to #brief-status
-- [ ] Create/update weekly Canvas
-- [ ] /brief slash command
-- [ ] Verify: full flow from DM to team channel
-
-### Week 4: Polish
-- [ ] Wednesday nudge for missing check-ins
-- [ ] Friday weekly digest
-- [ ] Edge cases (no Linear data, empty responses)
-- [ ] Test with real team for one cycle
+### Week 2: Report + Notion
+- [ ] Build report generation prompt (Claude)
+- [ ] Generate clean markdown from transcript
+- [ ] Set up Notion integration
+- [ ] Save reports to Notion database
+- [ ] Add Slack trigger (button or /brief command)
+- [ ] Test end-to-end flow
 - [ ] Demo prep
 
 ---
 
 ## Demo Script
 
-1. **Show Linear** — "Here's our team's board"
-2. **Check Slack** — DM arrives with context from Linear
-3. **The insight** — "Brief knows I did 8 tasks. Only asking about the blocked one."
-4. **Respond** — Type 2 sentences in thread (< 1 min)
-5. **See #brief-status** — Summary appears for team
-6. **Show Canvas** — Live overview of who's updated
-7. **The value** — "No status meeting. Manager sees everything. Took 2 minutes."
+1. **Show Slack** — "I get a message asking for my update"
+2. **Click button** — Opens voice session
+3. **Talk through it** — Answer 6 questions (~3 min)
+4. **Done** — "Brief says it's writing my report"
+5. **Open Notion** — Report is there, formatted nicely
+6. **The value** — "I talked for 3 minutes. No typing. Report is done."
 
 ---
 
 ## Success Criteria
 
-A manager says:
-> "I just watch #brief-status. I know what's happening."
+Someone finishes an update and says:
 
-A team member says:
-> "I answered 2 questions in Slack. Done."
+> "That was way easier than writing it myself."
+
+A manager opens Notion and says:
+
+> "I can see everyone's updates in one place."
 
 That's the MVP.
 
@@ -424,10 +318,10 @@ That's the MVP.
 
 ## V2 Features (Post-MVP)
 
-- **More integrations** — GitHub, Notion, Figma, Calendar
-- **Smart timing** — Don't interrupt deep work
-- **AI questions** — Claude generates context-aware questions
-- **Threaded discussions** — Manager can ask follow-ups in thread
-- **Trends** — "Blocked tasks up 20% this month"
-- **Alerts** — DM manager when someone's blocked 5+ days
-- **Multi-team** — Different channels per team/project
+- **Linear/GitHub integration** — Pull in activity data, show what's known
+- **Gap detection** — Only ask about what we can't see
+- **Slack summaries** — Post to a team channel
+- **Team digest** — Weekly rollup for managers
+- **Multiple templates** — Different questions for different teams
+- **Trends** — Track status over time
+- **Alerts** — Flag when someone's blocked multiple weeks
