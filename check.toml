@@ -1,0 +1,46 @@
+# check-my-toolkit configuration
+# Based on typescript-production ruleset, adapted for monorepo
+
+# =============================================================================
+# Code Quality
+# =============================================================================
+
+[code.linting.eslint]
+enabled = false  # TODO: enable once ESLint is configured
+
+[code.types.tsc]
+enabled = true
+
+[code.types.tsc.require]
+strict = true
+esModuleInterop = true
+skipLibCheck = true
+forceConsistentCasingInFileNames = true
+
+[code.security.secrets]
+enabled = true
+
+[code.naming]
+enabled = true
+
+[[code.naming.rules]]
+extensions = ["ts", "tsx"]
+file_case = "kebab-case"
+folder_case = "kebab-case"
+
+# =============================================================================
+# Process
+# =============================================================================
+
+[process.repo]
+enabled = true
+
+[process.forbidden_files]
+enabled = true
+
+# =============================================================================
+# Monorepo
+# =============================================================================
+
+[monorepo]
+exclude = ["packages/typescript-config"]
