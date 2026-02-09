@@ -1,8 +1,5 @@
 [metadata]
-name = "db"
-type = "typescript-backend"
 tier = "production"
-
-[tools.typescript]
-enabled = true
-strict = true
+status = "active"
+project = "finchly-db"
+organisation = "palindrom"

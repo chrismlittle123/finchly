@@ -1,8 +1,51 @@
-[metadata]
-name = "finchly"
-type = "monorepo"
-description = "Slack bot that captures links, enriches them with LLM summaries/tags/embeddings, and provides a queryable knowledge base"
+# @standards-kit/conform configuration
 
-[processes]
-ci = "turbo run lint build"
-deploy = "turbo run deploy"
+[metadata]
+tier = "production"
+status = "active"
+project = "finchly"
+organisation = "palindrom"
+
+# =============================================================================
+# Code Quality
+# =============================================================================
+
+[code.linting.eslint]
+enabled = false  # TODO: enable once ESLint is configured
+
+[code.types.tsc]
+enabled = true
+
+[code.types.tsc.require]
+strict = true
+esModuleInterop = true
+skipLibCheck = true
+forceConsistentCasingInFileNames = true
+
+[code.security.secrets]
+enabled = true
+
+[code.naming]
+enabled = true
+
+[[code.naming.rules]]
+extensions = ["ts", "tsx"]
+file_case = "kebab-case"
+folder_case = "kebab-case"
+
+# =============================================================================
+# Process
+# =============================================================================
+
+[process.repo]
+enabled = true
+
+[process.forbidden_files]
+enabled = true
+
+# =============================================================================
+# Monorepo
+# =============================================================================
+
+[monorepo]
+exclude = ["packages/typescript-config"]

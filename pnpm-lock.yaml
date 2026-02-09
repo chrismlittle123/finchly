@@ -8,9 +8,9 @@ importers:
 
   .:
     devDependencies:
-      check-my-toolkit:
-        specifier: ^2.8.0
-        version: 2.8.0
+      '@standards-kit/conform':
+        specifier: ^0.3.2
+        version: 0.3.2
       turbo:
         specifier: ^2.3.0
         version: 2.8.3
@@ -1312,6 +1312,11 @@ packages:
     resolution: {integrity: sha512-4aUIteuyxtBUhVdiQqcDhKFitwfd9hqoSDYY2KRXiWtgoWJ9Bmise+KfEPDiVHWeJepvF8xJO9/9+WDIciMFFw==}
     engines: {node: '>=18.0.0'}
 
+  '@standards-kit/conform@0.3.2':
+    resolution: {integrity: sha512-6qcIwaaDEcnVoZppbHS8+E0ETB0uzJv8V/AfJ9nlMFToB7KUGDrBIz7B9hMjA6U08qHgWCQBs9nZEcR6X4i8hg==}
+    engines: {node: '>=22'}
+    hasBin: true
+
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
@@ -1441,11 +1446,6 @@ packages:
     resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
-  check-my-toolkit@2.8.0:
-    resolution: {integrity: sha512-z2tn0DkIY2kbepIjTjNp25uWoawWko7aVui5/ICpoHCjKv+oXteQFfO6XHYPLnvQAuKbE62WXG9fnNV20zMDSA==}
-    engines: {node: '>=18', pnpm: '>=9'}
-    hasBin: true
-
   client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
 
@@ -1464,9 +1464,9 @@ packages:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
 
-  commander@13.1.0:
-    resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
-    engines: {node: '>=18'}
+  commander@14.0.3:
+    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
+    engines: {node: '>=20'}
 
   content-disposition@1.0.1:
     resolution: {integrity: sha512-oIXISMynqSqm241k6kcQ5UwttDILMK4BiurCfGEREw6+X9jkkpEe5T9FZaApyLGGOnFuyMWZpdolTXMtvEJ08Q==}
@@ -2650,6 +2650,9 @@ packages:
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
 snapshots:
 
@@ -4150,7 +4153,7 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@modelcontextprotocol/sdk@1.26.0(zod@3.25.76)':
+  '@modelcontextprotocol/sdk@1.26.0(zod@4.3.6)':
     dependencies:
       '@hono/node-server': 1.19.9(hono@4.11.9)
       ajv: 8.17.1
@@ -4167,8 +4170,8 @@ snapshots:
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 3.25.76
-      zod-to-json-schema: 3.25.1(zod@3.25.76)
+      zod: 4.3.6
+      zod-to-json-schema: 3.25.1(zod@4.3.6)
     transitivePeerDependencies:
       - supports-color
 
@@ -4593,6 +4596,40 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@standards-kit/conform@0.3.2':
+    dependencies:
+      '@aws-sdk/client-cloudwatch-logs': 3.985.0
+      '@aws-sdk/client-dynamodb': 3.985.0
+      '@aws-sdk/client-ec2': 3.985.0
+      '@aws-sdk/client-ecs': 3.985.0
+      '@aws-sdk/client-elastic-load-balancing-v2': 3.985.0
+      '@aws-sdk/client-elasticache': 3.985.0
+      '@aws-sdk/client-iam': 3.985.0
+      '@aws-sdk/client-lambda': 3.985.0
+      '@aws-sdk/client-rds': 3.985.0
+      '@aws-sdk/client-s3': 3.985.0
+      '@aws-sdk/client-secrets-manager': 3.985.0
+      '@aws-sdk/client-sns': 3.985.0
+      '@aws-sdk/client-sqs': 3.985.0
+      '@google-cloud/artifact-registry': 4.7.0
+      '@google-cloud/run': 3.2.0
+      '@google-cloud/secret-manager': 6.1.1
+      '@iarna/toml': 2.2.5
+      '@modelcontextprotocol/sdk': 1.26.0(zod@4.3.6)
+      chalk: 5.6.2
+      commander: 14.0.3
+      execa: 9.6.1
+      glob: 13.0.1
+      google-auth-library: 10.5.0
+      gray-matter: 4.0.3
+      js-yaml: 4.1.1
+      minimatch: 10.1.2
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - aws-crt
+      - supports-color
+
   '@swc/helpers@0.5.15':
     dependencies:
       tslib: 2.8.1
@@ -4724,41 +4761,6 @@ snapshots:
 
   chalk@5.6.2: {}
 
-  check-my-toolkit@2.8.0:
-    dependencies:
-      '@aws-sdk/client-cloudwatch-logs': 3.985.0
-      '@aws-sdk/client-dynamodb': 3.985.0
-      '@aws-sdk/client-ec2': 3.985.0
-      '@aws-sdk/client-ecs': 3.985.0
-      '@aws-sdk/client-elastic-load-balancing-v2': 3.985.0
-      '@aws-sdk/client-elasticache': 3.985.0
-      '@aws-sdk/client-iam': 3.985.0
-      '@aws-sdk/client-lambda': 3.985.0
-      '@aws-sdk/client-rds': 3.985.0
-      '@aws-sdk/client-s3': 3.985.0
-      '@aws-sdk/client-secrets-manager': 3.985.0
-      '@aws-sdk/client-sns': 3.985.0
-      '@aws-sdk/client-sqs': 3.985.0
-      '@google-cloud/artifact-registry': 4.7.0
-      '@google-cloud/run': 3.2.0
-      '@google-cloud/secret-manager': 6.1.1
-      '@iarna/toml': 2.2.5
-      '@modelcontextprotocol/sdk': 1.26.0(zod@3.25.76)
-      chalk: 5.6.2
-      commander: 13.1.0
-      execa: 9.6.1
-      glob: 13.0.1
-      google-auth-library: 10.5.0
-      gray-matter: 4.0.3
-      js-yaml: 4.1.1
-      minimatch: 10.1.2
-      zod: 3.25.76
-      zod-to-json-schema: 3.25.1(zod@3.25.76)
-    transitivePeerDependencies:
-      - '@cfworker/json-schema'
-      - aws-crt
-      - supports-color
-
   client-only@0.0.1: {}
 
   cliui@8.0.1:
@@ -4777,7 +4779,7 @@ snapshots:
     dependencies:
       delayed-stream: 1.0.0
 
-  commander@13.1.0: {}
+  commander@14.0.3: {}
 
   content-disposition@1.0.1: {}
 
@@ -5994,8 +5996,10 @@ snapshots:
 
   yoctocolors@2.1.2: {}
 
-  zod-to-json-schema@3.25.1(zod@3.25.76):
+  zod-to-json-schema@3.25.1(zod@4.3.6):
     dependencies:
-      zod: 3.25.76
+      zod: 4.3.6
 
   zod@3.25.76: {}
+
+  zod@4.3.6: {}

@@ -1,14 +1,5 @@
 [metadata]
-name = "api"
-type = "typescript-backend"
 tier = "production"
-
-[tools.typescript]
-enabled = true
-strict = true
-
-[tools.eslint]
-enabled = true
-
-[tools.prettier]
-enabled = true
+status = "active"
+project = "finchly-api"
+organisation = "palindrom"
