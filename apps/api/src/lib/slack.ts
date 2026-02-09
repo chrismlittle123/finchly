@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import { WebClient } from "@slack/web-api";
 
 export function verifySlackSignature(
   signingSecret: string,
@@ -23,8 +22,4 @@ export function verifySlackSignature(
     Buffer.from(mySignature),
     Buffer.from(signature),
   );
-}
-
-export function createSlackClient(token: string): WebClient {
-  return new WebClient(token);
 }

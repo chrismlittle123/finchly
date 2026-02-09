@@ -1,5 +1,32 @@
 [metadata]
-tier = "production"
+tier = "internal"
 status = "active"
-project = "finchly-api"
-organisation = "palindrom"
+
+[extends]
+registry = "github:palindrom-ai/standards"
+rulesets = ["typescript-internal"]
+
+[code.linting.eslint]
+enabled = true
+max-warnings = 0
+files = ["src/**/*.ts"]
+
+[code.types.tsc]
+enabled = true
+
+[code.unused.knip]
+enabled = false  # TODO: configure once workspace dep detection works
+
+[code.security.secrets]
+enabled = true
+
+[code.security.pnpmaudit]
+enabled = false  # lockfile at root
+
+[code.naming]
+enabled = true
+
+[[code.naming.rules]]
+extensions = ["ts"]
+file_case = "kebab-case"
+folder_case = "kebab-case"

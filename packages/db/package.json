@@ -12,6 +12,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "lint": "eslint src/",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push"
@@ -24,6 +25,9 @@
     "@finchly/typescript-config": "workspace:*",
     "@types/pg": "^8.11.0",
     "drizzle-kit": "^0.30.0",
-    "typescript": "^5.7.0"
+    "eslint": "^9.39.2",
+    "eslint-plugin-import": "^2.32.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.55.0"
   }
 }

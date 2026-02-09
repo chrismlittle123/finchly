@@ -1,5 +1,30 @@
 [metadata]
-tier = "prototype"
+tier = "internal"
 status = "active"
-project = "finchly-web"
-organisation = "palindrom"
+
+[extends]
+registry = "github:palindrom-ai/standards"
+rulesets = ["typescript-frontend-internal"]
+
+[code.linting.eslint]
+enabled = true
+max-warnings = 0
+files = ["src/**/*.tsx"]
+
+[code.types.tsc]
+enabled = true
+
+[code.security.secrets]
+enabled = true
+
+[code.security.pnpmaudit]
+enabled = false  # lockfile at root
+
+[code.naming]
+enabled = true
+
+[[code.naming.rules]]
+extensions = ["ts", "tsx"]
+file_case = "kebab-case"
+folder_case = "kebab-case"
+allow_dynamic_routes = true

@@ -98,7 +98,7 @@ export async function slackEventRoutes(
     if (urls.length > 0 && channelId === config.SLACK_CHANNEL_ID) {
       const newLinks = urls.map((url) => ({
         url,
-        slackChannelId: channelId!,
+        slackChannelId: channelId ?? "",
         slackUserId: userId,
         slackMessageTs: messageTs,
       }));

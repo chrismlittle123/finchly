@@ -1,26 +1,16 @@
 # @standards-kit/conform configuration
 
 [metadata]
-tier = "production"
-status = "active"
-project = "finchly"
-organisation = "palindrom"
-
-# =============================================================================
-# Code Quality
-# =============================================================================
+tier = "internal"
 
 [code.linting.eslint]
-enabled = false  # TODO: enable once ESLint is configured
+enabled = false          # ESLint lives at package level
 
 [code.types.tsc]
-enabled = true
+enabled = false          # TypeScript checking at package level
 
-[code.types.tsc.require]
-strict = true
-esModuleInterop = true
-skipLibCheck = true
-forceConsistentCasingInFileNames = true
+[code.unused.knip]
+enabled = false          # Knip at package level
 
 [code.security.secrets]
 enabled = true
@@ -33,19 +23,21 @@ extensions = ["ts", "tsx"]
 file_case = "kebab-case"
 folder_case = "kebab-case"
 
-# =============================================================================
-# Process
-# =============================================================================
+[process.ci]
+enabled = true
+require_workflows = ["ci.yml"]
+
+[process.commits]
+enabled = true
+types = ["feat", "fix", "chore", "docs", "refactor", "test", "style", "perf", "ci", "build"]
+require_scope = false
+max_subject_length = 100
 
 [process.repo]
 enabled = true
 
 [process.forbidden_files]
 enabled = true
-
-# =============================================================================
-# Monorepo
-# =============================================================================
 
 [monorepo]
 exclude = ["packages/typescript-config"]
