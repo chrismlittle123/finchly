@@ -89,71 +89,72 @@ Bot uses RAG to search knowledge base and answer.
 
 | Layer | Tech |
 |-------|------|
-| **Slack** | Bolt SDK (Node.js) |
-| **Backend** | Next.js API routes |
-| **Database** | Postgres + pgvector (Supabase) |
-| **LLM** | Claude API |
-| **Embeddings** | Voyage or OpenAI |
-| **Hosting** | Vercel |
+| **Monorepo** | Turborepo + pnpm workspaces |
+| **Frontend** | Next.js (App Router) + Tailwind CSS |
+| **Backend API** | Fastify (TypeScript) |
+| **Slack** | Bolt SDK (Node.js), integrated into Fastify |
+| **Database** | AWS RDS PostgreSQL + pgvector + Drizzle ORM |
+| **LLM** | `palindrom-ai/llm` (Python) — wraps Claude/OpenAI with observability |
+| **Embeddings** | `palindrom-ai/llm` — Voyage AI or OpenAI |
+| **Frontend Hosting** | Vercel |
+| **Backend Hosting** | GCP Cloud Run |
+| **Infrastructure** | `palindrom-ai/infra` (Pulumi) — all cloud resources |
+| **Schema** | Zod (TypeScript) → OpenAPI → Pydantic |
 
 ---
 
-## Database Schema
+## Database Schema (Drizzle ORM)
 
-```sql
--- Links: the knowledge base
-CREATE TABLE links (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+```typescript
+// packages/db/schema/links.ts
+import { pgTable, uuid, text, timestamp, index } from 'drizzle-orm/pg-core';
+import { vector } from 'drizzle-orm/pg-core'; // pgvector extension
 
-  -- Original data
-  url TEXT NOT NULL UNIQUE,
-  posted_by TEXT,
-  posted_by_name TEXT,
-  message_text TEXT,
-  slack_ts TEXT,
-  slack_channel TEXT,
+export const links = pgTable('links', {
+  id: uuid('id').primaryKey().defaultRandom(),
 
-  -- Enrichment
-  title TEXT,
-  description TEXT,
-  image_url TEXT,
-  summary TEXT,
-  tags TEXT[],
-  raw_content TEXT,          -- scraped page content (for RAG)
+  // Original data
+  url: text('url').notNull().unique(),
+  postedBy: text('posted_by'),
+  postedByName: text('posted_by_name'),
+  messageText: text('message_text'),
+  slackTs: text('slack_ts'),
+  slackChannel: text('slack_channel'),
 
-  -- Search
-  embedding VECTOR(1024),
+  // Enrichment
+  title: text('title'),
+  description: text('description'),
+  imageUrl: text('image_url'),
+  summary: text('summary'),
+  tags: text('tags').array(),
+  rawContent: text('raw_content'),
 
-  created_at TIMESTAMP DEFAULT NOW()
-);
+  // Search
+  embedding: vector('embedding', { dimensions: 1024 }),
 
--- Indexes
-CREATE INDEX links_embedding_idx ON links USING ivfflat (embedding vector_cosine_ops);
-CREATE INDEX links_tags_idx ON links USING GIN (tags);
-CREATE INDEX links_search_idx ON links USING GIN (
-  to_tsvector('english',
-    COALESCE(title, '') || ' ' ||
-    COALESCE(description, '') || ' ' ||
-    COALESCE(summary, '') || ' ' ||
-    COALESCE(message_text, '')
-  )
-);
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  embeddingIdx: index('links_embedding_idx').using('ivfflat', table.embedding),
+  tagsIdx: index('links_tags_idx').using('gin', table.tags),
+}));
 ```
 
-One table. That's the whole knowledge base.
+One table. That's the whole knowledge base. Migrations managed by Drizzle Kit.
 
 ---
 
-## API Routes
+## API Routes (Fastify)
 
 ```
-POST /api/slack/events     -- Slack webhook (link posted)
-POST /api/slack/messages   -- Slack bot DM handler
+POST /slack/events         -- Slack webhook (link posted)
+POST /slack/messages       -- Slack bot DM handler
 
-POST /api/enrich           -- Enrich a single link (internal)
-POST /api/search           -- Search knowledge base (internal)
-POST /api/chat             -- RAG query (internal)
+POST /enrich               -- Enrich a single link (internal)
+POST /search               -- Search knowledge base (internal)
+POST /chat                 -- RAG query (internal, calls palindrom-ai/llm)
 ```
+
+All routes defined with Zod schemas for request/response validation.
 
 ---
 
@@ -168,8 +169,8 @@ When a link is posted:
 4. If GitHub: fetch repo info via API
 5. If Arxiv: fetch paper abstract
 6. Scrape page content (for RAG context)
-7. Generate summary via Claude (1-2 sentences)
-8. Generate tags via Claude (from fixed list)
+7. Generate summary via palindrom-ai/llm (1-2 sentences)
+8. Generate tags via palindrom-ai/llm (from fixed list)
 9. Generate embedding
 10. Save to database
 ```
@@ -209,10 +210,11 @@ All responses include source links so user can click through.
 
 ## One Month Timeline
 
-### Week 1: Slack + Database
+### Week 1: Scaffold + Slack + Database
+- [ ] Turborepo monorepo setup (apps/web, apps/api, packages/db)
+- [ ] Fastify API with Bolt SDK, event subscription working
+- [ ] AWS RDS PostgreSQL + pgvector, Drizzle ORM schema + migrations
 - [ ] Create Slack app, install to workspace
-- [ ] Bolt SDK setup, event subscription working
-- [ ] Postgres + pgvector on Supabase
 - [ ] Basic link capture (no enrichment yet)
 - [ ] Verify: links appear in database when posted
 
@@ -220,9 +222,9 @@ All responses include source links so user can click through.
 - [ ] Page metadata fetching (unfurl)
 - [ ] GitHub API integration
 - [ ] Arxiv abstract extraction
-- [ ] Claude summarization
-- [ ] Claude tagging
-- [ ] Embedding generation
+- [ ] palindrom-ai/llm summarization
+- [ ] palindrom-ai/llm tagging
+- [ ] Embedding generation (via palindrom-ai/llm)
 - [ ] Verify: links fully enriched in database
 
 ### Week 3: Query Interface

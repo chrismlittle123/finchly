@@ -88,7 +88,8 @@ Every Link and Note is tied to a Source Event (who shared it, when, where).
 ### Data Model
 
 - Many-to-many relationships between Links, Notes, and Nests
-- Versioning in PostgreSQL
+- Drizzle ORM for schema definition and migrations
+- AWS RDS PostgreSQL with pgvector
 - Full-text and semantic search indexes
 
 ---
@@ -211,17 +212,17 @@ Skills can:
 - Pin nests to Slack Canvas
 - Receive skill outputs (newsletters, summaries)
 
-### Web App
+### Web App (Next.js on Vercel)
 - Browse all Links and Notes
 - Search across Knowledge Base
 - View and manage Nests
 - Configure Capture and Filter Flows
-- Nice UI for navigating markdown content
+- Thin BFF layer — all business logic in Fastify backend (GCP Cloud Run)
 
 ### Voice Mode
 - Same as chat interface, but spoken
-- Powered by LiveKit agents
-- Same Finchly API backend
+- Powered by `palindrom-ai/livekit-agents` (Python)
+- Same Finchly Fastify API backend
 
 ---
 

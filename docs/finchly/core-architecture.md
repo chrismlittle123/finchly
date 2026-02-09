@@ -35,12 +35,17 @@ This document describes the technology layer that powers Finchly.
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Backend** | Next.js API Routes | API endpoints, webhooks |
-| **Database** | PostgreSQL + pgvector (Supabase) | Storage, vector search |
-| **LLM** | Claude API | Summarization, Q&A, analysis |
-| **Embeddings** | Voyage AI or OpenAI | Semantic search vectors |
+| **Monorepo** | Turborepo + pnpm workspaces | Task orchestration, package linking |
+| **Frontend** | Next.js (App Router) + Tailwind CSS | Web interface (V2, thin BFF layer) |
+| **Backend API** | Fastify (TypeScript) | API endpoints, webhooks, business logic |
+| **Database** | AWS RDS PostgreSQL + pgvector + Drizzle ORM | Storage, vector search, migrations |
+| **LLM** | `palindrom-ai/llm` (Python) | Summarization, Q&A, RAG, observability |
+| **Embeddings** | `palindrom-ai/llm` | Semantic search vectors (Voyage AI or OpenAI) |
 | **Slack** | Bolt SDK (Node.js) | Bot interactions, events |
-| **Hosting** | Vercel | Deployment, cron jobs |
+| **Infrastructure** | `palindrom-ai/infra` (Pulumi) | All cloud resources — never write raw Pulumi |
+| **Schema** | Zod → OpenAPI → Pydantic | Type-safe APIs, single source of truth |
+| **Frontend Hosting** | Vercel | Next.js deployment |
+| **Backend Hosting** | GCP Cloud Run | Fastify API deployment |
 
 ---
 
@@ -204,24 +209,21 @@ app.command('/finchly', handleQuery);
 
 ## LLM Orchestration
 
-Centralized Claude API usage.
+All LLM calls go through `palindrom-ai/llm` (Python). Never import Anthropic/OpenAI SDKs directly.
 
-### Prompt Management
+### What the Package Provides
 
-```typescript
-interface PromptConfig {
-  system: string;
-  temperature: number;
-  maxTokens: number;
-  model: 'claude-sonnet' | 'claude-haiku';
-}
+| Feature | Description |
+|---------|-------------|
+| Unified API | Single interface for Claude, OpenAI, Google |
+| Observability | Tracing, token counts, latency, cost via Langfuse |
+| RAG | Retrieval-augmented generation utilities |
+| Fallbacks | Primary model fails → backup |
+| Cost tracking | Per project, feature, user |
 
-const prompts = {
-  summarize: { ... },
-  tag: { ... },
-  answer: { ... },
-};
-```
+### Required Metadata
+
+All LLM calls include: `project`, `feature`, `userId`, `requestId`.
 
 ### Cost Optimization
 
@@ -235,29 +237,29 @@ const prompts = {
 
 ## Database Layer
 
-PostgreSQL on Supabase.
+AWS RDS PostgreSQL with Drizzle ORM. Migrations managed by Drizzle Kit.
 
-### Common Tables
+### Common Tables (Drizzle Schema)
 
-```sql
--- Users
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slack_user_id TEXT UNIQUE,
-  slack_team_id TEXT,
-  email TEXT,
-  name TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+```typescript
+// packages/db/schema/users.ts
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slackUserId: text('slack_user_id').unique(),
+  slackTeamId: text('slack_team_id'),
+  email: text('email'),
+  name: text('name'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
 
--- Teams/Workspaces
-CREATE TABLE teams (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slack_team_id TEXT UNIQUE,
-  name TEXT,
-  settings JSONB,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+// packages/db/schema/teams.ts
+export const teams = pgTable('teams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slackTeamId: text('slack_team_id').unique(),
+  name: text('name'),
+  settings: jsonb('settings'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
 ```
 
 ### Indexing Strategy
@@ -315,17 +317,16 @@ const rateLimit = {
 ## Environment Variables
 
 ```bash
-# Database
+# Database (AWS RDS)
 DATABASE_URL=postgresql://...
-DIRECT_URL=postgresql://...
 
-# LLM
+# LLM (via palindrom-ai/llm)
 ANTHROPIC_API_KEY=sk-ant-...
+LANGFUSE_PUBLIC_KEY=pk-...
+LANGFUSE_SECRET_KEY=sk-...
 
-# Embeddings
+# Embeddings (via palindrom-ai/llm)
 VOYAGE_API_KEY=...
-# or
-OPENAI_API_KEY=sk-...
 
 # Slack
 SLACK_BOT_TOKEN=xoxb-...
@@ -333,35 +334,50 @@ SLACK_SIGNING_SECRET=...
 
 # App
 NEXT_PUBLIC_APP_URL=https://...
+API_URL=https://...
 ```
 
 ---
 
+## Infrastructure
+
+All cloud resources are created and managed via `palindrom-ai/infra` (Pulumi). Never write raw Pulumi directly.
+
+```typescript
+import { Api, Database, Secret } from 'palindrom-ai/infra';
+
+const db = new Database("Finchly");
+const slackToken = new Secret("SlackBotToken");
+const slackSecret = new Secret("SlackSigningSecret");
+const anthropicKey = new Secret("AnthropicApiKey");
+
+const api = new Api("FinchlyApi", {
+  link: [db, slackToken, slackSecret, anthropicKey],
+});
+```
+
 ## Deployment
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         VERCEL                                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌───────────────────────────────────────────────┐              │
-│  │              Finchly App                      │              │
-│  │  API Routes + Slack Webhooks                  │              │
-│  └───────────────────────────────────────────────┘              │
-│                                                                 │
-│  ┌───────────────────────────────────────────────┐              │
-│  │              Cron Jobs                        │              │
-│  │  • Freshness checks                           │              │
-│  │  • Digest generation                          │              │
-│  └───────────────────────────────────────────────┘              │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                        SUPABASE                                 │
-│                                                                 │
-│  PostgreSQL + pgvector + Auth + Storage                        │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────┐     ┌──────────────────────────┐
+│         VERCEL           │     │     GCP CLOUD RUN        │
+├──────────────────────────┤     ├──────────────────────────┤
+│                          │     │                          │
+│  Next.js Frontend        │     │  Fastify API             │
+│  (thin BFF layer)        │────▶│  Slack Webhooks          │
+│                          │     │  Enrichment Pipeline     │
+│                          │     │  Cron Jobs               │
+│                          │     │                          │
+└──────────────────────────┘     └──────────────────────────┘
+                                           │
+                                           ▼
+                              ┌──────────────────────────┐
+                              │       AWS RDS            │
+                              │                          │
+                              │  PostgreSQL + pgvector   │
+                              │  Managed by Drizzle ORM  │
+                              │                          │
+                              └──────────────────────────┘
+
+All resources provisioned via palindrom-ai/infra (Pulumi).
 ```
