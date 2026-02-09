@@ -1,12 +1,18 @@
-# Shared Core Architecture
+# Finchly Core Architecture
 
-This document describes the shared technology layer that powers both **Finchly** (external knowledge capture) and **Brief** (internal status intelligence).
+This document describes the technology layer that powers Finchly.
 
 ## Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      SHARED PLATFORM                            │
+│                         THE WORLD                                │
+│   Articles, papers, repos, news, blogs, tweets, podcasts...     │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      FINCHLY PLATFORM                            │
 ├─────────────────────────────────────────────────────────────────┤
 │  • Enrichment Engine                                            │
 │  • Embeddings + Vector Search                                   │
@@ -14,17 +20,13 @@ This document describes the shared technology layer that powers both **Finchly**
 │  • Slack SDK Integration                                        │
 │  • LLM Orchestration                                            │
 │  • Database Layer                                               │
-│  • Voice Interface                                              │
 └─────────────────────────────────────────────────────────────────┘
-              │                                    │
-              ▼                                    ▼
-┌─────────────────────────┐          ┌─────────────────────────┐
-│        FINCHLY          │          │         BRIEF           │
-│                         │          │                         │
-│  External → In          │          │  Internal → Up          │
-│  Knowledge capture      │          │  Status intelligence    │
-│  Nests, queries         │          │  Check-ins, dashboards  │
-└─────────────────────────┘          └─────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         NESTS                                    │
+│   Curated collections of knowledge, queryable via RAG           │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -38,14 +40,13 @@ This document describes the shared technology layer that powers both **Finchly**
 | **LLM** | Claude API | Summarization, Q&A, analysis |
 | **Embeddings** | Voyage AI or OpenAI | Semantic search vectors |
 | **Slack** | Bolt SDK (Node.js) | Bot interactions, events |
-| **Voice** | LiveKit Agents | Real-time voice interface |
 | **Hosting** | Vercel | Deployment, cron jobs |
 
 ---
 
 ## Enrichment Engine
 
-Takes raw content and makes it useful. Used by both products.
+Takes raw content and makes it useful.
 
 ### Capabilities
 
@@ -173,9 +174,7 @@ User: {query}
 
 ## Slack SDK Integration
 
-Both products live in Slack.
-
-### Shared Capabilities
+### Capabilities
 
 | Feature | Implementation |
 |---------|----------------|
@@ -183,7 +182,7 @@ Both products live in Slack.
 | **Bot DM** | Direct message interface for queries |
 | **Channel Posting** | Automated summaries, reminders |
 | **Interactive Messages** | Buttons, modals, forms |
-| **Slash Commands** | `/finchly`, `/brief` |
+| **Slash Commands** | `/finchly` |
 
 ### Event Types
 
@@ -198,7 +197,7 @@ app.event('link_shared', handleLinkShared);
 app.action('button_click', handleButtonClick);
 
 // Slash commands
-app.command('/query', handleQuery);
+app.command('/finchly', handleQuery);
 ```
 
 ---
@@ -221,7 +220,6 @@ const prompts = {
   summarize: { ... },
   tag: { ... },
   answer: { ... },
-  generateQuestions: { ... },  // Brief-specific
 };
 ```
 
@@ -232,18 +230,17 @@ const prompts = {
 | Summarization | Haiku | High volume, simple task |
 | Tagging | Haiku | Classification, fast |
 | Q&A / RAG | Sonnet | Quality matters |
-| Gap Detection | Sonnet | Complex reasoning |
 
 ---
 
 ## Database Layer
 
-PostgreSQL on Supabase with shared schema patterns.
+PostgreSQL on Supabase.
 
 ### Common Tables
 
 ```sql
--- Users (shared across products)
+-- Users
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slack_user_id TEXT UNIQUE,
@@ -273,39 +270,7 @@ CREATE TABLE teams (
 
 ---
 
-## Voice Interface
-
-Shared voice infrastructure using LiveKit.
-
-### Architecture
-
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Client    │────▶│   LiveKit   │────▶│   Agent     │
-│  (iOS/Web)  │◀────│   Server    │◀────│  (Python)   │
-└─────────────┘     └─────────────┘     └─────────────┘
-                                              │
-                                              ▼
-                                        ┌─────────────┐
-                                        │  Backend    │
-                                        │  API        │
-                                        └─────────────┘
-```
-
-### Agent Capabilities
-
-| Capability | Description |
-|------------|-------------|
-| **Speech-to-Text** | Transcribe user voice input |
-| **Text-to-Speech** | Generate voice responses |
-| **Conversation State** | Track multi-turn dialogue |
-| **Tool Calling** | Search, save, query via API |
-
----
-
 ## API Design Patterns
-
-Shared patterns across both products.
 
 ### Authentication
 
@@ -349,8 +314,6 @@ const rateLimit = {
 
 ## Environment Variables
 
-Shared across both products:
-
 ```bash
 # Database
 DATABASE_URL=postgresql://...
@@ -368,11 +331,6 @@ OPENAI_API_KEY=sk-...
 SLACK_BOT_TOKEN=xoxb-...
 SLACK_SIGNING_SECRET=...
 
-# LiveKit (Voice)
-LIVEKIT_URL=wss://...
-LIVEKIT_API_KEY=...
-LIVEKIT_API_SECRET=...
-
 # App
 NEXT_PUBLIC_APP_URL=https://...
 ```
@@ -381,24 +339,21 @@ NEXT_PUBLIC_APP_URL=https://...
 
 ## Deployment
 
-Both products deploy to Vercel with shared infrastructure.
-
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         VERCEL                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
-│  │  Finchly    │  │   Brief     │  │   Shared    │            │
-│  │  App        │  │   App       │  │   API       │            │
-│  └─────────────┘  └─────────────┘  └─────────────┘            │
+│  ┌───────────────────────────────────────────────┐              │
+│  │              Finchly App                      │              │
+│  │  API Routes + Slack Webhooks                  │              │
+│  └───────────────────────────────────────────────┘              │
 │                                                                 │
-│  ┌─────────────────────────────────────────────────┐           │
-│  │              Cron Jobs                          │           │
-│  │  • Weekly check-in reminders (Brief)            │           │
-│  │  • Freshness checks (Finchly)                   │           │
-│  │  • Digest generation (Both)                     │           │
-│  └─────────────────────────────────────────────────┘           │
+│  ┌───────────────────────────────────────────────┐              │
+│  │              Cron Jobs                        │              │
+│  │  • Freshness checks                           │              │
+│  │  • Digest generation                          │              │
+│  └───────────────────────────────────────────────┘              │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                               │
