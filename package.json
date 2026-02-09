@@ -3,17 +3,16 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "lint": "pnpm -r lint",
     "conform": "conform check",
-    "typecheck": "turbo build",
-    "db:generate": "turbo db:generate",
-    "db:migrate": "turbo db:migrate",
-    "db:push": "turbo db:push"
+    "typecheck": "pnpm -r build",
+    "db:generate": "pnpm --filter @finchly/db db:generate",
+    "db:migrate": "pnpm --filter @finchly/db db:migrate",
+    "db:push": "pnpm --filter @finchly/db db:push"
   },
   "devDependencies": {
-    "@standards-kit/conform": "^0.3.2",
-    "turbo": "^2.3.0"
+    "@standards-kit/conform": "^0.3.2"
   }
 }
