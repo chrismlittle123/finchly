@@ -1,0 +1,8 @@
+[metadata]
+name = "finchly"
+type = "monorepo"
+description = "Slack bot that captures links, enriches them with LLM summaries/tags/embeddings, and provides a queryable knowledge base"
+
+[processes]
+ci = "turbo run lint build"
+deploy = "turbo run deploy"

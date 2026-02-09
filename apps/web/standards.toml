@@ -1,0 +1,14 @@
+[metadata]
+name = "web"
+type = "typescript-frontend"
+tier = "prototype"
+
+[tools.typescript]
+enabled = true
+strict = true
+
+[tools.eslint]
+enabled = true
+
+[tools.prettier]
+enabled = true
