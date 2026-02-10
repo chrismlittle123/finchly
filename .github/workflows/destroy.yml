@@ -17,6 +17,11 @@ permissions:
 
 env:
   AWS_REGION: eu-west-2
+  GCP_PROJECT: christopher-little-dev
+  GCP_REGION: europe-west2
+  WORKLOAD_IDENTITY_PROVIDER: projects/10492061315/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  GCP_SERVICE_ACCOUNT: github-actions@christopher-little-dev.iam.gserviceaccount.com
+  PULUMI_STATE_BUCKET: s3://pulumi-state-215629979895
 
 jobs:
   destroy:
@@ -30,6 +35,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::215629979895:role/github-actions-pulumi
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -40,22 +60,17 @@ jobs:
 
       - run: pnpm install --ignore-workspace
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::215629979895:role/github-actions-pulumi
-          aws-region: ${{ env.AWS_REGION }}
-
       - name: Install Pulumi
         run: curl -fsSL https://get.pulumi.com | sh && echo "$HOME/.pulumi/bin" >> $GITHUB_PATH
 
       - name: Destroy
         run: |
-          pulumi login s3://pulumi-state-215629979895
+          pulumi login ${{ env.PULUMI_STATE_BUCKET }}
           pulumi stack select ${{ env.ENVIRONMENT }} --create
           pulumi refresh --yes
           pulumi destroy --yes
         env:
           PULUMI_CONFIG_PASSPHRASE: ""
           PULUMI_STACK: ${{ env.ENVIRONMENT }}
+          GOOGLE_PROJECT: ${{ env.GCP_PROJECT }}
         timeout-minutes: 30

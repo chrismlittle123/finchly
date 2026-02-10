@@ -26,7 +26,11 @@ app.addContentTypeParser(
 
 // Register routes
 app.register(healthRoutes);
-app.register(slackEventRoutes, { config, db });
+if (config.SLACK_BOT_TOKEN && config.SLACK_SIGNING_SECRET && config.SLACK_CHANNEL_ID) {
+  app.register(slackEventRoutes, { config, db });
+} else {
+  app.log.warn("Slack env vars not set — Slack routes disabled");
+}
 
 async function start() {
   try {

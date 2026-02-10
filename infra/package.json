@@ -6,6 +6,8 @@
   },
   "dependencies": {
     "@palindrom-ai/infra": "github:chrismlittle123/infra",
+    "@pulumi/aws": "^6.0.0",
+    "@pulumi/gcp": "^9.0.0",
     "@pulumi/pulumi": "^3.0.0"
   },
   "devDependencies": {

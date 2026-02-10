@@ -2,9 +2,9 @@ import { z } from "zod";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
-  SLACK_BOT_TOKEN: z.string().startsWith("xoxb-"),
-  SLACK_SIGNING_SECRET: z.string().min(1),
-  SLACK_CHANNEL_ID: z.string().min(1),
+  SLACK_BOT_TOKEN: z.string().startsWith("xoxb-").optional(),
+  SLACK_SIGNING_SECRET: z.string().min(1).optional(),
+  SLACK_CHANNEL_ID: z.string().min(1).optional(),
   PORT: z.coerce.number().default(3001),
   HOST: z.string().default("0.0.0.0"),
 });

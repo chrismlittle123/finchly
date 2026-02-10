@@ -1,1 +1,3 @@
-config: {}
+config:
+  gcp:project: christopher-little-dev
+  gcp:region: europe-west2
