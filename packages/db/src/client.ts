@@ -6,7 +6,10 @@ let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 export function getDb(connectionString: string) {
   if (!db) {
-    const pool = new pg.Pool({ connectionString });
+    const ssl = connectionString.includes("sslmode=require")
+      ? { rejectUnauthorized: false }
+      : undefined;
+    const pool = new pg.Pool({ connectionString, ssl });
     db = drizzle(pool, { schema });
   }
   return db;
