@@ -6,10 +6,11 @@ const API_URL =
   "https://finchly-api-dev-10492061315.europe-west2.run.app";
 
 async function api(path: string, opts?: RequestInit) {
-  return fetch(`${API_URL}${path}`, {
-    ...opts,
-    headers: { "Content-Type": "application/json", ...opts?.headers },
-  });
+  const headers: Record<string, string> = { ...opts?.headers as Record<string, string> };
+  if (opts?.body) {
+    headers["Content-Type"] = "application/json";
+  }
+  return fetch(`${API_URL}${path}`, { ...opts, headers });
 }
 
 describe("Finchly API integration tests", () => {
