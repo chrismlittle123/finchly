@@ -1,0 +1,6 @@
+name: finchly
+runtime:
+  name: nodejs
+  options:
+    typescript: true
+description: Finchly infrastructure

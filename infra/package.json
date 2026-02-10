@@ -1,0 +1,14 @@
+{
+  "name": "finchly-infra",
+  "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": ["@palindrom-ai/infra"]
+  },
+  "dependencies": {
+    "@palindrom-ai/infra": "github:chrismlittle123/infra",
+    "@pulumi/pulumi": "^3.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
