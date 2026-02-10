@@ -141,6 +141,13 @@ jobs:
           DB_PASSWORD=$(aws secretsmanager get-secret-value --secret-id "$DB_SECRET_ARN" --query SecretString --output text)
           export DATABASE_URL="postgresql://postgres:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=require"
           cd ../packages/db
+          NODE_TLS_REJECT_UNAUTHORIZED=0 node --input-type=module -e "
+            import pg from 'pg';
+            const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+            await pool.query('CREATE EXTENSION IF NOT EXISTS vector');
+            console.log('pgvector extension ready');
+            await pool.end();
+          "
           NODE_TLS_REJECT_UNAUTHORIZED=0 pnpm db:push --force
         env:
           PULUMI_CONFIG_PASSPHRASE: ""
