@@ -18,5 +18,5 @@ out/
 .DS_Store
 *.tsbuildinfo
 
-# drizzle
-drizzle/
+# drizzle (root only — packages/db/drizzle is tracked)
+/drizzle/

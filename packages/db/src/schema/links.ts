@@ -6,6 +6,7 @@ import {
   jsonb,
   index,
   uniqueIndex,
+  vector,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -19,7 +20,7 @@ export const links = pgTable(
     title: text("title"),
     summary: text("summary"),
     tags: jsonb("tags").$type<string[]>().default([]),
-    embedding: text("embedding"), // stored as pgvector via raw SQL migration
+    embedding: vector("embedding", { dimensions: 1536 }),
     slackMessageTs: text("slack_message_ts"),
     slackChannelId: text("slack_channel_id"),
     slackUserId: text("slack_user_id"),
@@ -34,6 +35,10 @@ export const links = pgTable(
     uniqueIndex("links_url_idx").on(table.url),
     index("links_tags_idx").using("gin", table.tags),
     index("links_created_at_idx").on(table.createdAt),
+    index("links_embedding_idx").using(
+      "hnsw",
+      table.embedding.op("vector_cosine_ops"),
+    ),
   ],
 );
 
