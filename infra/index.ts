@@ -40,7 +40,7 @@ const dbPassword = aws.secretsmanager.getSecretVersionOutput({
   secretId: db.passwordSecretArn,
 }).apply(v => v.secretString);
 
-const databaseUrl = pulumi.interpolate`postgresql://postgres:${dbPassword}@${db.host}:${db.port}/${db.database}`;
+const databaseUrl = pulumi.interpolate`postgresql://postgres:${dbPassword}@${db.host}:${db.port}/${db.database}?sslmode=require`;
 
 // =============================================================================
 // GCP — Artifact Registry
