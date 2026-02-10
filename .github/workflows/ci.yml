@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  conform:
-    name: Conform
+  standards:
+    name: Standards
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,8 +26,56 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Run conform checks
-        run: pnpm conform
+      - name: Build packages
+        run: pnpm build
+
+      - name: Conform audit (root)
+        run: npx @standards-kit/conform audit
+
+      - name: Conform check (root)
+        run: npx @standards-kit/conform check
+
+      - name: Conform audit (api)
+        working-directory: apps/api
+        run: npx @standards-kit/conform audit
+
+      - name: Conform check (api)
+        working-directory: apps/api
+        run: npx @standards-kit/conform check
+
+      - name: Conform audit (web)
+        working-directory: apps/web
+        run: npx @standards-kit/conform audit
+
+      - name: Conform check (web)
+        working-directory: apps/web
+        run: npx @standards-kit/conform check
+
+      - name: Conform audit (db)
+        working-directory: packages/db
+        run: npx @standards-kit/conform audit
+
+      - name: Conform check (db)
+        working-directory: packages/db
+        run: npx @standards-kit/conform check
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
 
   typecheck:
     name: Typecheck
