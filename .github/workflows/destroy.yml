@@ -49,9 +49,6 @@ jobs:
       - name: Install Pulumi
         run: curl -fsSL https://get.pulumi.com | sh && echo "$HOME/.pulumi/bin" >> $GITHUB_PATH
 
-      - name: Install Pulumi SDK
-        run: pulumi install
-
       - name: Destroy
         run: |
           pulumi login s3://pulumi-state-215629979895
