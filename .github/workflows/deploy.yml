@@ -127,10 +127,25 @@ jobs:
           PULUMI_STACK: ${{ env.ENVIRONMENT }}
           GOOGLE_PROJECT: ${{ env.GCP_PROJECT }}
 
-      # ── Integration tests ──────────────────────────────────────────
-      - name: Install API dependencies
-        run: pnpm install --filter @finchly/api...
+      # ── Database migrations ─────────────────────────────────────────
+      - name: Install workspace dependencies
+        run: pnpm install --filter @finchly/db... --filter @finchly/api...
 
+      - name: Run database migrations
+        working-directory: infra
+        run: |
+          DB_HOST=$(pulumi stack output dbHost)
+          DB_PORT=$(pulumi stack output dbPort)
+          DB_NAME=$(pulumi stack output dbDatabase)
+          DB_SECRET_ARN=$(pulumi stack output dbPasswordSecretArn)
+          DB_PASSWORD=$(aws secretsmanager get-secret-value --secret-id "$DB_SECRET_ARN" --query SecretString --output text)
+          export DATABASE_URL="postgresql://postgres:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=require"
+          cd ../packages/db
+          pnpm db:push --force
+        env:
+          PULUMI_CONFIG_PASSPHRASE: ""
+
+      # ── Integration tests ──────────────────────────────────────────
       - name: Run integration tests
         run: pnpm --filter @finchly/api test:integration
         env:
