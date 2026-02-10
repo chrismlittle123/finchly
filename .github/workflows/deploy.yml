@@ -153,7 +153,31 @@ jobs:
           PULUMI_CONFIG_PASSPHRASE: ""
 
       # ── Integration tests ──────────────────────────────────────────
+      - name: Generate JWT for integration tests
+        id: jwt
+        working-directory: infra
+        run: |
+          JWT_SECRET_NAME=$(pulumi stack output --json | node -e "
+            const data = require('fs').readFileSync('/dev/stdin', 'utf8');
+            // Use the secret name pattern
+            console.log('finchly-jwt-secret-' + '${{ env.ENVIRONMENT }}');
+          ")
+          JWT_SECRET=$(gcloud secrets versions access latest --secret="$JWT_SECRET_NAME" 2>/dev/null || echo "")
+          if [ -z "$JWT_SECRET" ]; then
+            echo "Warning: JWT secret not found, using placeholder"
+            JWT_SECRET="integration-test-secret-that-is-at-least-32-characters"
+          fi
+          TOKEN=$(node -e "
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign({ sub: 'ci-test', email: 'ci@finchly.dev' }, '$JWT_SECRET', { issuer: 'finchly', expiresIn: '10m' });
+            console.log(token);
+          " 2>/dev/null || echo "")
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+        env:
+          PULUMI_CONFIG_PASSPHRASE: ""
+
       - name: Run integration tests
         run: pnpm --filter @finchly/api test:integration
         env:
           API_URL: https://finchly-api-dev-10492061315.europe-west2.run.app
+          API_TOKEN: ${{ steps.jwt.outputs.token }}

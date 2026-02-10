@@ -84,11 +84,17 @@ const slackChannelIdSecret = new gcp.secretmanager.Secret("slack-channel-id", {
   replication: { auto: {} },
 });
 
+const jwtSecretSecret = new gcp.secretmanager.Secret("jwt-secret", {
+  secretId: `finchly-jwt-secret-${environment}`,
+  replication: { auto: {} },
+});
+
 const allSecrets = [
   databaseUrlSecret,
   slackBotTokenSecret,
   slackSigningSecretSecret,
   slackChannelIdSecret,
+  jwtSecretSecret,
 ];
 
 // =============================================================================
@@ -137,6 +143,10 @@ const service = new gcp.cloudrunv2.Service("finchly-api", {
         {
           name: "DATABASE_URL",
           valueSource: { secretKeyRef: { secret: databaseUrlSecret.secretId, version: "latest" } },
+        },
+        {
+          name: "JWT_SECRET",
+          valueSource: { secretKeyRef: { secret: jwtSecretSecret.secretId, version: "latest" } },
         },
         // TODO: Uncomment when Slack app is configured with real secret values
         // {

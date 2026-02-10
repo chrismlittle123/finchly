@@ -8,16 +8,19 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "lint": "eslint src/",
-    "test:integration": "node --test --import tsx test/integration.test.ts"
+    "test": "node --test --import tsx 'tests/unit/**/*.test.ts'",
+    "test:integration": "node --test --import tsx 'tests/integration/**/*.test.ts'"
   },
   "dependencies": {
     "@finchly/db": "workspace:*",
+    "@palindrom/fastify-api": "github:chrismlittle123/fastify-api",
     "@slack/web-api": "^7.8.0",
     "fastify": "^5.2.0",
-    "zod": "^3.24.0"
+    "nanoid": "^5.0.0"
   },
   "devDependencies": {
     "@finchly/typescript-config": "workspace:*",
+    "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "^22.10.0",
     "eslint": "^9.39.2",
     "eslint-plugin-import": "^2.32.0",

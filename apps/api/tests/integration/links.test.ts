@@ -1,12 +1,19 @@
-import { describe, it, before, after } from "node:test";
+import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
+import { generateTestToken } from "../helpers/auth.js";
 
 const API_URL =
   process.env.API_URL ??
   "https://finchly-api-dev-10492061315.europe-west2.run.app";
 
+const JWT_SECRET = process.env.JWT_SECRET ?? "test-secret-that-is-at-least-32-characters-long";
+const token = process.env.API_TOKEN ?? generateTestToken(JWT_SECRET);
+
 async function api(path: string, opts?: RequestInit) {
-  const headers: Record<string, string> = { ...opts?.headers as Record<string, string> };
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    ...(opts?.headers as Record<string, string>),
+  };
   if (opts?.body) {
     headers["Content-Type"] = "application/json";
   }
@@ -18,15 +25,15 @@ describe("Finchly API integration tests", () => {
   let createdId: string;
   let metadataId: string;
 
-  it("1. Health check — GET /health returns ok", async () => {
-    const res = await api("/health");
+  it("1. Health check — GET /health returns healthy", async () => {
+    const res = await fetch(`${API_URL}/health`);
     assert.equal(res.status, 200);
     const body = await res.json();
-    assert.deepEqual(body, { status: "ok" });
+    assert.equal(body.status, "healthy");
   });
 
-  it("2. Create link — POST /links returns 201", async () => {
-    const res = await api("/links", {
+  it("2. Create link — POST /v1/links returns 201", async () => {
+    const res = await api("/v1/links", {
       method: "POST",
       body: JSON.stringify({ url: testUrl }),
     });
@@ -34,50 +41,56 @@ describe("Finchly API integration tests", () => {
     const body = await res.json();
     assert.equal(body.url, testUrl);
     assert.ok(body.id);
+    assert.ok(body.id.startsWith("lnk_"), "ID should have lnk_ prefix");
     assert.ok(body.createdAt);
     createdId = body.id;
   });
 
-  it("3. Get link by ID — GET /links/:id returns matching data", async () => {
-    const res = await api(`/links/${createdId}`);
+  it("3. Get link by ID — GET /v1/links/:id returns matching data", async () => {
+    const res = await api(`/v1/links/${createdId}`);
     assert.equal(res.status, 200);
     const body = await res.json();
     assert.equal(body.id, createdId);
     assert.equal(body.url, testUrl);
   });
 
-  it("4. List links — GET /links returns array containing created link", async () => {
-    const res = await api("/links");
+  it("4. List links — GET /v1/links returns paginated response", async () => {
+    const res = await api("/v1/links");
     assert.equal(res.status, 200);
     const body = await res.json();
-    assert.ok(Array.isArray(body));
-    const found = body.find((l: { id: string }) => l.id === createdId);
+    assert.ok(Array.isArray(body.data), "Response should have data array");
+    assert.equal(typeof body.hasMore, "boolean");
+    const found = body.data.find((l: { id: string }) => l.id === createdId);
     assert.ok(found, "Created link should appear in list");
   });
 
-  it("5. Duplicate URL — POST /links with same URL returns 409", async () => {
-    const res = await api("/links", {
+  it("5. Duplicate URL — POST /v1/links with same URL returns 409", async () => {
+    const res = await api("/v1/links", {
       method: "POST",
       body: JSON.stringify({ url: testUrl }),
     });
     assert.equal(res.status, 409);
     const body = await res.json();
-    assert.equal(body.error, "URL already exists");
+    assert.ok(body.error, "Should have error object");
+    assert.equal(body.error.code, "CONFLICT");
   });
 
-  it("6. Delete link — DELETE /links/:id returns 204", async () => {
-    const res = await api(`/links/${createdId}`, { method: "DELETE" });
+  it("6. Delete link — DELETE /v1/links/:id returns 204", async () => {
+    const res = await api(`/v1/links/${createdId}`, { method: "DELETE" });
     assert.equal(res.status, 204);
   });
 
-  it("7. Get deleted link — GET /links/:id returns 404", async () => {
-    const res = await api(`/links/${createdId}`);
+  it("7. Get deleted link — GET /v1/links/:id returns 404", async () => {
+    const res = await api(`/v1/links/${createdId}`);
     assert.equal(res.status, 404);
+    const body = await res.json();
+    assert.ok(body.error);
+    assert.equal(body.error.code, "NOT_FOUND");
   });
 
   it("8. Create link with metadata — fields are returned", async () => {
     const metadataUrl = `https://example.com/meta-${Date.now()}`;
-    const res = await api("/links", {
+    const res = await api("/v1/links", {
       method: "POST",
       body: JSON.stringify({
         url: metadataUrl,
@@ -95,20 +108,15 @@ describe("Finchly API integration tests", () => {
     metadataId = body.id;
   });
 
-  it("9. Invalid payload — POST /links with no URL returns 400", async () => {
-    const res = await api("/links", {
-      method: "POST",
-      body: JSON.stringify({}),
-    });
-    assert.equal(res.status, 400);
-    const body = await res.json();
-    assert.equal(body.error, "Invalid payload");
+  it("9. Unauthenticated request — returns 401", async () => {
+    const res = await fetch(`${API_URL}/v1/links`);
+    assert.equal(res.status, 401);
   });
 
   // Cleanup: delete the metadata link created in test 8
   after(async () => {
     if (metadataId) {
-      await api(`/links/${metadataId}`, { method: "DELETE" });
+      await api(`/v1/links/${metadataId}`, { method: "DELETE" });
     }
   });
 });

@@ -1,14 +1,23 @@
-import Fastify from "fastify";
+import { createApp } from "@palindrom/fastify-api";
 import { loadConfig } from "./config.js";
 import { getDb } from "@finchly/db";
-import { healthRoutes } from "./routes/health.js";
-import { linksRoutes } from "./routes/links.js";
-import { slackEventRoutes } from "./routes/slack/events.js";
+import type { Database } from "@finchly/db";
+import { registerLinkRoutes } from "./routes/links.js";
+import { registerSlackRoutes } from "./routes/slack/events.js";
 
-const config = loadConfig();
-const db = getDb(config.DATABASE_URL);
+declare module "fastify" {
+  interface FastifyInstance {
+    finchlyDb: Database;
+  }
+}
 
-const app = Fastify({ logger: true });
+const { appConfig, env } = loadConfig();
+
+const app = await createApp(appConfig);
+
+// Decorate with our own DB instance (skip fastify-api's built-in db)
+const db = getDb(env.DATABASE_URL);
+app.decorate("finchlyDb", db);
 
 // Custom content type parser to preserve rawBody for Slack signature verification
 app.addContentTypeParser(
@@ -26,21 +35,22 @@ app.addContentTypeParser(
 );
 
 // Register routes
-app.register(healthRoutes);
-app.register(linksRoutes, { config, db });
-if (config.SLACK_BOT_TOKEN && config.SLACK_SIGNING_SECRET && config.SLACK_CHANNEL_ID) {
-  app.register(slackEventRoutes, { config, db });
+registerLinkRoutes(app);
+
+if (env.SLACK_BOT_TOKEN && env.SLACK_SIGNING_SECRET && env.SLACK_CHANNEL_ID) {
+  registerSlackRoutes(app, { env });
 } else {
   app.log.warn("Slack env vars not set — Slack routes disabled");
 }
 
-async function start() {
-  try {
-    await app.listen({ port: config.PORT, host: config.HOST });
-  } catch (err) {
-    app.log.error(err);
-    process.exit(1);
-  }
-}
+// Graceful shutdown
+const shutdown = async () => {
+  app.log.info("Shutting down...");
+  await app.close();
+  process.exit(0);
+};
 
-start();
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
+
+await app.start();

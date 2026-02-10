@@ -1,11 +1,10 @@
-import { z } from "zod";
+import { z } from "@palindrom/fastify-api";
 import type { FastifyInstance } from "fastify";
 import { links } from "@finchly/db";
 import { verifySlackSignature } from "../../lib/slack.js";
-import type { Env } from "../../config.js";
-import type { Database } from "@finchly/db";
+import { extractUrls } from "../../lib/urls.js";
+import type { FinchlyEnv } from "../../config.js";
 
-// Slack event schemas
 const urlVerificationSchema = z.object({
   type: z.literal("url_verification"),
   challenge: z.string(),
@@ -34,48 +33,38 @@ const eventCallbackSchema = z.object({
 
 const slackPayloadSchema = z.union([urlVerificationSchema, eventCallbackSchema]);
 
-// Extract URLs from message text
-const URL_REGEX = /https?:\/\/[^\s>]+/g;
-
-function extractUrls(text: string | undefined): string[] {
-  if (!text) return [];
-  return [...text.matchAll(URL_REGEX)].map((m) => m[0]);
-}
-
-export async function slackEventRoutes(
+export function registerSlackRoutes(
   app: FastifyInstance,
-  opts: { config: Env; db: Database },
+  opts: { env: FinchlyEnv },
 ) {
-  const { config, db } = opts;
+  const { env } = opts;
+  const db = app.finchlyDb;
 
   app.post("/slack/events", async (request, reply) => {
     const rawBody = (request as unknown as { rawBody: Buffer }).rawBody;
 
-    // Verify Slack signature
     const isValid = verifySlackSignature(
-      config.SLACK_SIGNING_SECRET as string,
+      env.SLACK_SIGNING_SECRET as string,
       request.headers["x-slack-signature"] as string | undefined,
       request.headers["x-slack-request-timestamp"] as string | undefined,
       rawBody,
     );
 
     if (!isValid) {
-      return reply.status(401).send({ error: "Invalid signature" });
+      return reply.status(401).send({ error: { code: "UNAUTHORIZED", message: "Invalid signature" } });
     }
 
     const parsed = slackPayloadSchema.safeParse(request.body);
     if (!parsed.success) {
-      return reply.status(400).send({ error: "Invalid payload" });
+      return reply.status(400).send({ error: { code: "BAD_REQUEST", message: "Invalid payload" } });
     }
 
     const payload = parsed.data;
 
-    // Handle URL verification challenge
     if (payload.type === "url_verification") {
       return reply.send({ challenge: payload.challenge });
     }
 
-    // Handle event callbacks
     const { event } = payload;
 
     let urls: string[] = [];
@@ -95,7 +84,7 @@ export async function slackEventRoutes(
       messageTs = event.ts;
     }
 
-    if (urls.length > 0 && channelId === config.SLACK_CHANNEL_ID) {
+    if (urls.length > 0 && channelId === env.SLACK_CHANNEL_ID) {
       const newLinks = urls.map((url) => ({
         url,
         slackChannelId: channelId ?? "",

@@ -10,7 +10,8 @@
     "typecheck": "pnpm -r build",
     "db:generate": "pnpm --filter @finchly/db db:generate",
     "db:migrate": "pnpm --filter @finchly/db db:migrate",
-    "db:push": "pnpm --filter @finchly/db db:push"
+    "db:push": "pnpm --filter @finchly/db db:push",
+    "test": "pnpm -r test"
   },
   "devDependencies": {
     "@standards-kit/conform": "^0.3.2"

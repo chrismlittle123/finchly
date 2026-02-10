@@ -2,20 +2,17 @@ import {
   pgTable,
   text,
   timestamp,
-  uuid,
   jsonb,
   index,
   uniqueIndex,
   vector,
 } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { linkId } from "../ids.js";
 
 export const links = pgTable(
   "links",
   {
-    id: uuid("id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
+    id: text("id").primaryKey().$defaultFn(() => linkId()),
     url: text("url").notNull(),
     title: text("title"),
     summary: text("summary"),
