@@ -17,47 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - uses: chrismlittle123/github-actions/typescript-standards-check@main
         with:
-          node-version-file: ".nvmrc"
-          cache: "pnpm"
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Conform audit (root)
-        run: npx @standards-kit/conform audit
-
-      - name: Conform check (root)
-        run: npx @standards-kit/conform check
-
-      - name: Conform audit (api)
-        working-directory: apps/api
-        run: npx @standards-kit/conform audit
-
-      - name: Conform check (api)
-        working-directory: apps/api
-        run: npx @standards-kit/conform check
-
-      - name: Conform audit (web)
-        working-directory: apps/web
-        run: npx @standards-kit/conform audit
-
-      - name: Conform check (web)
-        working-directory: apps/web
-        run: npx @standards-kit/conform check
-
-      - name: Conform audit (db)
-        working-directory: packages/db
-        run: npx @standards-kit/conform audit
-
-      - name: Conform check (db)
-        working-directory: packages/db
-        run: npx @standards-kit/conform check
+          build-command: "pnpm build"
 
   lint:
     name: Lint

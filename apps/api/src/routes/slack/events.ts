@@ -53,7 +53,7 @@ export async function slackEventRoutes(
 
     // Verify Slack signature
     const isValid = verifySlackSignature(
-      config.SLACK_SIGNING_SECRET!,
+      config.SLACK_SIGNING_SECRET as string,
       request.headers["x-slack-signature"] as string | undefined,
       request.headers["x-slack-request-timestamp"] as string | undefined,
       rawBody,
