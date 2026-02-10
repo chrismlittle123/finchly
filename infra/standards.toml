@@ -1,0 +1,22 @@
+[metadata]
+tier = "internal"
+status = "active"
+
+[extends]
+registry = "github:palindrom-ai/standards"
+rulesets = ["typescript-internal"]
+
+[code.linting.eslint]
+enabled = false  # no eslint config in infra
+
+[code.types.tsc]
+enabled = true
+
+[code.security.secrets]
+enabled = true
+
+[code.security.pnpmaudit]
+enabled = false  # separate lockfile
+
+[code.naming]
+enabled = false  # Pulumi conventions differ
