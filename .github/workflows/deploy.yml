@@ -126,3 +126,12 @@ jobs:
           PULUMI_CONFIG_PASSPHRASE: ""
           PULUMI_STACK: ${{ env.ENVIRONMENT }}
           GOOGLE_PROJECT: ${{ env.GCP_PROJECT }}
+
+      # ── Integration tests ──────────────────────────────────────────
+      - name: Install API dependencies
+        run: pnpm install --filter @finchly/api...
+
+      - name: Run integration tests
+        run: pnpm --filter @finchly/api test:integration
+        env:
+          API_URL: https://finchly-api-dev-10492061315.europe-west2.run.app

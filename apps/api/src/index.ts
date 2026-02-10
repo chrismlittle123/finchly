@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import { loadConfig } from "./config.js";
 import { getDb } from "@finchly/db";
 import { healthRoutes } from "./routes/health.js";
+import { linksRoutes } from "./routes/links.js";
 import { slackEventRoutes } from "./routes/slack/events.js";
 
 const config = loadConfig();
@@ -26,6 +27,7 @@ app.addContentTypeParser(
 
 // Register routes
 app.register(healthRoutes);
+app.register(linksRoutes, { config, db });
 if (config.SLACK_BOT_TOKEN && config.SLACK_SIGNING_SECRET && config.SLACK_CHANNEL_ID) {
   app.register(slackEventRoutes, { config, db });
 } else {
