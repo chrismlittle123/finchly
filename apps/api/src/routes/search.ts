@@ -82,6 +82,37 @@ function buildSearchRoute(app: FastifyInstance, env: FinchlyEnv) {
   });
 }
 
+async function generateAnswer(
+  question: string,
+  results: Array<{ url: string; title: string | null; summary: string | null; rawContent: string | null }>,
+  gatewayUrl: string,
+): Promise<string> {
+  const context = results
+    .map((r, i) => {
+      const content = r.rawContent ? r.rawContent.slice(0, 2000) : r.summary ?? "No content available";
+      return `[${i + 1}] ${r.title ?? r.url}\nURL: ${r.url}\n${content}`;
+    })
+    .join("\n\n---\n\n");
+
+  const client = new LLMClient({ baseUrl: gatewayUrl });
+  const completion = await client.complete({
+    model: "claude-haiku-4-5-20251001",
+    messages: [
+      {
+        role: "system",
+        content: `You are Finchly, a helpful assistant that answers questions based on the user's saved links. Use ONLY the provided context to answer. Reference sources by their number [1], [2], etc. If the context doesn't contain enough information, say so honestly. Be concise.`,
+      },
+      {
+        role: "user",
+        content: `Context from saved links:\n\n${context}\n\n---\n\nQuestion: ${question}`,
+      },
+    ],
+    fallbacks: ["claude-3-5-haiku-latest"],
+  });
+
+  return completion.content;
+}
+
 function buildAskRoute(app: FastifyInstance, env: FinchlyEnv) {
   const db = app.finchlyDb;
 
@@ -153,35 +184,8 @@ function buildAskRoute(app: FastifyInstance, env: FinchlyEnv) {
         };
       }
 
-      // Step 3: Build context from top results
-      const context = results
-        .map((r, i) => {
-          const content = r.rawContent
-            ? r.rawContent.slice(0, 2000)
-            : r.summary ?? "No content available";
-          return `[${i + 1}] ${r.title ?? r.url}\nURL: ${r.url}\n${content}`;
-        })
-        .join("\n\n---\n\n");
-
-      // Step 4: Ask Claude via LLM gateway
-      const client = new LLMClient({ baseUrl: env.LLM_GATEWAY_URL });
-
-      const completion = await client.complete({
-        model: "claude-haiku-4-5-20251001",
-        messages: [
-          {
-            role: "system",
-            content: `You are Finchly, a helpful assistant that answers questions based on the user's saved links. Use ONLY the provided context to answer. Reference sources by their number [1], [2], etc. If the context doesn't contain enough information, say so honestly. Be concise.`,
-          },
-          {
-            role: "user",
-            content: `Context from saved links:\n\n${context}\n\n---\n\nQuestion: ${question}`,
-          },
-        ],
-        fallbacks: ["claude-3-5-haiku-latest"],
-      });
-
-      const answer = completion.content;
+      // Step 3-4: Build context and ask LLM
+      const answer = await generateAnswer(question, results, env.LLM_GATEWAY_URL);
 
       return {
         answer,
