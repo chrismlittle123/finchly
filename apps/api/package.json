@@ -13,6 +13,7 @@
     "test:e2e": "node --test --import tsx 'tests/e2e/**/*.test.ts'"
   },
   "dependencies": {
+    "@chrismlittle123/llm-client": "^0.1.0",
     "@finchly/db": "workspace:*",
     "@palindrom/fastify-api": "github:chrismlittle123/fastify-api",
     "@slack/web-api": "^7.8.0",

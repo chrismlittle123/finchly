@@ -4,7 +4,7 @@ import { links, desc, gt, and, isNotNull, cosineDistance, sql } from "@finchly/d
 import type { FinchlyEnv } from "../config.js";
 import { generateEmbedding } from "../services/enrichment/embedding.js";
 import type { EnricherContext } from "../services/enrichment/types.js";
-import { LLMClient } from "../lib/llm.js";
+import { LLMClient } from "@chrismlittle123/llm-client";
 
 const searchResultSchema = z.object({
   id: z.string(),

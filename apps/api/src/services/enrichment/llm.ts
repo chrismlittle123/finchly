@@ -1,4 +1,4 @@
-import { LLMClient } from "../../lib/llm.js";
+import { LLMClient } from "@chrismlittle123/llm-client";
 import type { LlmResult, EnricherContext } from "./types.js";
 
 const TAG_TAXONOMY = [

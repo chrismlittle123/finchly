@@ -1,17 +1,18 @@
 # Stage 1: Install dependencies
 FROM node:20-slim AS deps
 
+ARG GITHUB_TOKEN
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
 # Copy workspace config and all package.json files
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY .npmrc pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/api/package.json apps/api/
 COPY packages/db/package.json packages/db/
 COPY packages/typescript-config/package.json packages/typescript-config/
 
-RUN pnpm install --frozen-lockfile
+RUN GITHUB_TOKEN=${GITHUB_TOKEN} pnpm install --frozen-lockfile
 
 # Stage 2: Build
 FROM deps AS build
@@ -25,16 +26,17 @@ RUN pnpm --filter @finchly/db build && pnpm --filter @finchly/api build
 # Stage 3: Production
 FROM node:20-slim AS prod
 
+ARG GITHUB_TOKEN
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY .npmrc pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/api/package.json apps/api/
 COPY packages/db/package.json packages/db/
 COPY packages/typescript-config/package.json packages/typescript-config/
 
-RUN pnpm install --frozen-lockfile --prod
+RUN GITHUB_TOKEN=${GITHUB_TOKEN} pnpm install --frozen-lockfile --prod
 
 # Copy built output
 COPY --from=build /app/packages/typescript-config/ packages/typescript-config/

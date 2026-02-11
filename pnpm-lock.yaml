@@ -14,6 +14,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@chrismlittle123/llm-client':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@finchly/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -374,6 +377,9 @@ packages:
   '@aws/lambda-invoke-store@0.2.3':
     resolution: {integrity: sha512-oLvsaPMTBejkkmHhjf09xTgk71mOqyr/409NKhRIL08If7AhVfUsJhVsx386uJaqNd42v9kWamQ9lFbkoC2dYw==}
     engines: {node: '>=18.0.0'}
+
+  '@chrismlittle123/llm-client@0.1.0':
+    resolution: {integrity: sha512-Vt5Hx1OlOopAsUU6g5DxSosOhwDacApGhRuCE6QGcEOS09IMV9DoSDdnsFI5XXn3oTT/0KLCNt4Lsj3+roLitw==, tarball: https://npm.pkg.github.com/download/@chrismlittle123/llm-client/0.1.0/baca19ecdda82f32480c7ca17d7f3ee3ebc8357a}
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
@@ -900,6 +906,10 @@ packages:
     resolution: {integrity: sha512-rc1hOQtjIWGxcxpb9aHAfLpIctjEnsDehj0DAiVfBlmT84uvR0uUtN2hEi/ecvWVjXUGf5qPF4qEgiLOx1YIMQ==}
     engines: {node: '>=6'}
     hasBin: true
+
+  '@hey-api/client-fetch@0.8.4':
+    resolution: {integrity: sha512-SWtUjVEFIUdiJGR2NiuF0njsSrSdTe7WHWkp3BLH3DEl2bRhiflOnBo29NSDdrY90hjtTQiTQkBxUgGOF29Xzg==}
+    deprecated: Starting with v0.73.0, this package is bundled directly inside @hey-api/openapi-ts.
 
   '@hono/node-server@1.19.9':
     resolution: {integrity: sha512-vHL6w3ecZsky+8P5MD+eFfaGTyCeOHUIFYMGpQGbrBTSmNNoxv0if69rEZ5giu36weC5saFuznL411gRX7bJDw==}
@@ -5262,6 +5272,10 @@ snapshots:
 
   '@aws/lambda-invoke-store@0.2.3': {}
 
+  '@chrismlittle123/llm-client@0.1.0':
+    dependencies:
+      '@hey-api/client-fetch': 0.8.4
+
   '@drizzle-team/brocli@0.10.2': {}
 
   '@emnapi/runtime@1.8.1':
@@ -5618,6 +5632,8 @@ snapshots:
       long: 5.3.2
       protobufjs: 7.5.4
       yargs: 17.7.2
+
+  '@hey-api/client-fetch@0.8.4': {}
 
   '@hono/node-server@1.19.9(hono@4.11.9)':
     dependencies:
