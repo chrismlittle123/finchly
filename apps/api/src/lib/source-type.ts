@@ -25,22 +25,43 @@ export function detectSourceType(url: string): SourceType {
   }
 }
 
-export interface GitHubRepo {
+export interface GitHubParsed {
   owner: string;
   repo: string;
+  /** "blob" = specific file, "tree" = subdirectory, "root" = repo root */
+  pathType: "blob" | "tree" | "root";
+  /** ref (branch/tag/commit) — only set for blob/tree URLs */
+  ref?: string;
+  /** path within the repo — only set for blob/tree URLs */
+  filePath?: string;
 }
 
-export function parseGitHubUrl(url: string): GitHubRepo | null {
+/** @deprecated Use GitHubParsed instead */
+export type GitHubRepo = GitHubParsed;
+
+export function parseGitHubUrl(url: string): GitHubParsed | null {
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
     if (host !== "github.com" && host !== "www.github.com") return null;
 
-    // pathname like /owner/repo or /owner/repo/tree/main/...
+    // pathname like /owner/repo or /owner/repo/blob/main/src/index.ts
     const segments = parsed.pathname.split("/").filter(Boolean);
     if (segments.length < 2) return null;
 
-    return { owner: segments[0], repo: segments[1] };
+    const owner = segments[0];
+    const repo = segments[1];
+
+    // /owner/repo/blob/ref/path/to/file
+    // /owner/repo/tree/ref/path/to/dir
+    if (segments.length >= 4 && (segments[2] === "blob" || segments[2] === "tree")) {
+      const pathType = segments[2] as "blob" | "tree";
+      const ref = segments[3];
+      const filePath = segments.slice(4).join("/") || undefined;
+      return { owner, repo, pathType, ref, filePath };
+    }
+
+    return { owner, repo, pathType: "root" };
   } catch {
     return null;
   }

@@ -37,18 +37,44 @@ describe("detectSourceType", () => {
 });
 
 describe("parseGitHubUrl", () => {
-  it("extracts owner and repo", () => {
+  it("extracts owner and repo for root URL", () => {
     assert.deepEqual(
       parseGitHubUrl("https://github.com/anthropics/claude-code"),
-      { owner: "anthropics", repo: "claude-code" },
+      { owner: "anthropics", repo: "claude-code", pathType: "root" },
     );
   });
 
-  it("handles extra path segments", () => {
+  it("parses /tree/ URL (subdirectory)", () => {
     assert.deepEqual(
       parseGitHubUrl("https://github.com/anthropics/claude-code/tree/main/src"),
-      { owner: "anthropics", repo: "claude-code" },
+      { owner: "anthropics", repo: "claude-code", pathType: "tree", ref: "main", filePath: "src" },
     );
+  });
+
+  it("parses /tree/ URL with nested path", () => {
+    assert.deepEqual(
+      parseGitHubUrl("https://github.com/drizzle-team/drizzle-orm/tree/main/drizzle-orm/src"),
+      { owner: "drizzle-team", repo: "drizzle-orm", pathType: "tree", ref: "main", filePath: "drizzle-orm/src" },
+    );
+  });
+
+  it("parses /blob/ URL (specific file)", () => {
+    assert.deepEqual(
+      parseGitHubUrl("https://github.com/anthropics/claude-code/blob/main/README.md"),
+      { owner: "anthropics", repo: "claude-code", pathType: "blob", ref: "main", filePath: "README.md" },
+    );
+  });
+
+  it("parses /blob/ URL with nested file path", () => {
+    assert.deepEqual(
+      parseGitHubUrl("https://github.com/fastify/fastify/blob/main/docs/Guides/Getting-Started.md"),
+      { owner: "fastify", repo: "fastify", pathType: "blob", ref: "main", filePath: "docs/Guides/Getting-Started.md" },
+    );
+  });
+
+  it("handles /tree/ref with no subpath as tree without filePath", () => {
+    const result = parseGitHubUrl("https://github.com/owner/repo/tree/main");
+    assert.deepEqual(result, { owner: "owner", repo: "repo", pathType: "tree", ref: "main", filePath: undefined });
   });
 
   it("returns null for GitHub root URL", () => {

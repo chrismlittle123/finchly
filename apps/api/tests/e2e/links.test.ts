@@ -1,24 +1,6 @@
 import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
-import { generateTestToken } from "../helpers/auth.js";
-
-const API_URL =
-  process.env.API_URL ??
-  "https://finchly-api-dev-10492061315.europe-west2.run.app";
-
-const JWT_SECRET = process.env.JWT_SECRET ?? "test-secret-that-is-at-least-32-characters-long";
-const token = process.env.API_TOKEN ?? generateTestToken(JWT_SECRET);
-
-async function api(path: string, opts?: RequestInit) {
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    ...(opts?.headers as Record<string, string>),
-  };
-  if (opts?.body) {
-    headers["Content-Type"] = "application/json";
-  }
-  return fetch(`${API_URL}${path}`, { ...opts, headers });
-}
+import { api, API_URL } from "../helpers/api.js";
 
 describe("Finchly API integration tests", () => {
   const testUrl = `https://example.com/test-${Date.now()}`;
@@ -29,7 +11,7 @@ describe("Finchly API integration tests", () => {
     const res = await fetch(`${API_URL}/health`);
     assert.equal(res.status, 200);
     const body = await res.json();
-    assert.equal(body.status, "healthy");
+    assert.equal(body.status, "ok");
   });
 
   it("2. Create link — POST /v1/links returns 201", async () => {

@@ -1,30 +1,6 @@
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { generateTestToken } from "../helpers/auth.js";
-
-/**
- * End-to-end test: POST links via API → wait for enrichment → search → ask.
- *
- * Requires a running local API with:
- *   DATABASE_URL, JWT_SECRET, FIRECRAWL_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY
- *
- * Run: API_URL=http://localhost:3001 pnpm -F @finchly/api test:integration -- tests/integration/e2e-enrichment.test.ts
- */
-
-const API_URL = process.env.API_URL ?? "http://localhost:3001";
-const JWT_SECRET = process.env.JWT_SECRET ?? "test-secret-that-is-at-least-32-characters-long";
-const token = process.env.API_TOKEN ?? generateTestToken(JWT_SECRET);
-
-async function api(path: string, opts?: RequestInit) {
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    ...(opts?.headers as Record<string, string>),
-  };
-  if (opts?.body) {
-    headers["Content-Type"] = "application/json";
-  }
-  return fetch(`${API_URL}${path}`, { ...opts, headers });
-}
+import { api, API_URL } from "../helpers/api.js";
 
 /** Poll GET /v1/links/:id until enrichedAt is set or timeout. */
 async function waitForEnrichment(id: string, timeoutMs = 30_000): Promise<Record<string, unknown>> {
