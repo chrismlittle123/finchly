@@ -4,7 +4,7 @@ import { links, desc, gt, and, isNotNull, cosineDistance, sql } from "@finchly/d
 import type { FinchlyEnv } from "../config.js";
 import { generateEmbedding } from "../services/enrichment/embedding.js";
 import type { EnricherContext } from "../services/enrichment/types.js";
-import Anthropic from "@anthropic-ai/sdk";
+import { LLMClient } from "../lib/llm.js";
 
 const searchResultSchema = z.object({
   id: z.string(),
@@ -111,8 +111,8 @@ function buildAskRoute(app: FastifyInstance, env: FinchlyEnv) {
       if (!env.OPENAI_API_KEY) {
         throw AppError.badRequest("OPENAI_API_KEY not configured — search unavailable");
       }
-      if (!env.ANTHROPIC_API_KEY) {
-        throw AppError.badRequest("ANTHROPIC_API_KEY not configured — ask unavailable");
+      if (!env.LLM_GATEWAY_URL) {
+        throw AppError.badRequest("LLM_GATEWAY_URL not configured — ask unavailable");
       }
 
       const { question } = request.body;
@@ -163,20 +163,25 @@ function buildAskRoute(app: FastifyInstance, env: FinchlyEnv) {
         })
         .join("\n\n---\n\n");
 
-      // Step 4: Ask Claude
-      const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+      // Step 4: Ask Claude via LLM gateway
+      const client = new LLMClient({ baseUrl: env.LLM_GATEWAY_URL });
 
-      const message = await client.messages.create({
+      const completion = await client.complete({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1024,
-        system: `You are Finchly, a helpful assistant that answers questions based on the user's saved links. Use ONLY the provided context to answer. Reference sources by their number [1], [2], etc. If the context doesn't contain enough information, say so honestly. Be concise.`,
-        messages: [{
-          role: "user",
-          content: `Context from saved links:\n\n${context}\n\n---\n\nQuestion: ${question}`,
-        }],
+        messages: [
+          {
+            role: "system",
+            content: `You are Finchly, a helpful assistant that answers questions based on the user's saved links. Use ONLY the provided context to answer. Reference sources by their number [1], [2], etc. If the context doesn't contain enough information, say so honestly. Be concise.`,
+          },
+          {
+            role: "user",
+            content: `Context from saved links:\n\n${context}\n\n---\n\nQuestion: ${question}`,
+          },
+        ],
+        fallbacks: ["claude-3-5-haiku-latest"],
       });
 
-      const answer = message.content[0].type === "text" ? message.content[0].text : "";
+      const answer = completion.content;
 
       return {
         answer,

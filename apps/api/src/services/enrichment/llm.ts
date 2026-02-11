@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { LLMClient } from "../../lib/llm.js";
 import type { LlmResult, EnricherContext } from "./types.js";
 
 const TAG_TAXONOMY = [
@@ -33,26 +33,27 @@ export async function generateSummaryAndTags(
   content: string,
   ctx: EnricherContext,
 ): Promise<LlmResult | null> {
-  if (!ctx.env.ANTHROPIC_API_KEY) {
-    ctx.logger.debug("ANTHROPIC_API_KEY not set, skipping LLM enrichment");
+  if (!ctx.env.LLM_GATEWAY_URL) {
+    ctx.logger.debug("LLM_GATEWAY_URL not set, skipping LLM enrichment");
     return null;
   }
 
-  const client = new Anthropic({ apiKey: ctx.env.ANTHROPIC_API_KEY });
+  const client = new LLMClient({ baseUrl: ctx.env.LLM_GATEWAY_URL });
 
   // Truncate content to ~4k chars to keep costs low with Haiku
   const truncated = content.length > 4000 ? content.slice(0, 4000) + "..." : content;
 
-  const message = await client.messages.create({
+  const completion = await client.complete({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 256,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: truncated }],
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: truncated },
+    ],
+    fallbacks: ["claude-3-5-haiku-latest"],
   });
 
-  const raw = message.content[0].type === "text" ? message.content[0].text : "";
   // Strip markdown code fences if present (Haiku sometimes wraps in ```json ... ```)
-  const text = raw.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+  const text = completion.content.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
 
   try {
     const parsed = JSON.parse(text) as { summary: string; tags: string[] };

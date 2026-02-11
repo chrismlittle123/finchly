@@ -104,6 +104,11 @@ const firecrawlApiKeySecret = new gcp.secretmanager.Secret("firecrawl-api-key", 
   replication: { auto: {} },
 });
 
+const llmGatewayUrlSecret = new gcp.secretmanager.Secret("llm-gateway-url", {
+  secretId: `finchly-llm-gateway-url-${environment}`,
+  replication: { auto: {} },
+});
+
 const allSecrets = [
   databaseUrlSecret,
   slackBotTokenSecret,
@@ -113,6 +118,7 @@ const allSecrets = [
   openaiApiKeySecret,
   anthropicApiKeySecret,
   firecrawlApiKeySecret,
+  llmGatewayUrlSecret,
 ];
 
 // =============================================================================
@@ -175,8 +181,8 @@ const service = new gcp.cloudrunv2.Service("finchly-api", {
           valueSource: { secretKeyRef: { secret: openaiApiKeySecret.secretId, version: "latest" } },
         },
         {
-          name: "ANTHROPIC_API_KEY",
-          valueSource: { secretKeyRef: { secret: anthropicApiKeySecret.secretId, version: "latest" } },
+          name: "LLM_GATEWAY_URL",
+          valueSource: { secretKeyRef: { secret: llmGatewayUrlSecret.secretId, version: "latest" } },
         },
         {
           name: "FIRECRAWL_API_KEY",

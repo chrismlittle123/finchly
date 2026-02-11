@@ -10,6 +10,7 @@ const envSchema = z.object({
   FIRECRAWL_API_KEY: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  LLM_GATEWAY_URL: z.string().url().optional(),
   GITHUB_TOKEN: z.string().min(1).optional(),
   PORT: z.coerce.number().default(3001),
   HOST: z.string().default("0.0.0.0"),
