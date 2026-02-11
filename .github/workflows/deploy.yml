@@ -19,6 +19,8 @@ permissions:
   packages: read
 
 env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # AWS
   AWS_REGION: eu-west-2
 
