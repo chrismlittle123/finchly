@@ -2,6 +2,8 @@ import { z, defineRoute, registerRoute, AppError } from "@palindrom/fastify-api"
 import type { FastifyInstance, FastifyReply } from "fastify";
 import { links, eq, desc, lt } from "@finchly/db";
 import type { Link } from "@finchly/db";
+import { enrichLink } from "../services/enrichment/pipeline.js";
+import type { FinchlyEnv } from "../config.js";
 
 function serializeLink(link: Link, includeRawContent = false) {
   return {
@@ -119,7 +121,7 @@ function buildGetRoute(app: FastifyInstance) {
   });
 }
 
-function buildCreateRoute(app: FastifyInstance) {
+function buildCreateRoute(app: FastifyInstance, env: FinchlyEnv) {
   const db = app.finchlyDb;
 
   return defineRoute({
@@ -141,6 +143,12 @@ function buildCreateRoute(app: FastifyInstance) {
       try {
         const [row] = await db.insert(links).values(request.body).returning();
         if (reply) reply.status(201);
+
+        // Fire-and-forget enrichment
+        enrichLink(request.body.url, { db, env, logger: request.log }).catch((err) => {
+          request.log.error({ err, url: request.body.url }, "Background enrichment failed");
+        });
+
         return serializeLink(row);
       } catch (err: unknown) {
         if (isUniqueViolation(err)) throw AppError.conflict("URL already exists");
@@ -171,9 +179,9 @@ function buildDeleteRoute(app: FastifyInstance) {
   });
 }
 
-export function registerLinkRoutes(app: FastifyInstance) {
+export function registerLinkRoutes(app: FastifyInstance, opts: { env: FinchlyEnv }) {
   registerRoute(app, buildListRoute(app));
   registerRoute(app, buildGetRoute(app));
-  registerRoute(app, buildCreateRoute(app));
+  registerRoute(app, buildCreateRoute(app, opts.env));
   registerRoute(app, buildDeleteRoute(app));
 }

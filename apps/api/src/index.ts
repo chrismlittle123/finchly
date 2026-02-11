@@ -3,6 +3,7 @@ import { loadConfig } from "./config.js";
 import { getDb } from "@finchly/db";
 import type { Database } from "@finchly/db";
 import { registerLinkRoutes } from "./routes/links.js";
+import { registerSearchRoutes } from "./routes/search.js";
 import { registerSlackRoutes } from "./routes/slack/events.js";
 
 declare module "fastify" {
@@ -35,7 +36,8 @@ app.addContentTypeParser(
 );
 
 // Register routes
-registerLinkRoutes(app);
+registerLinkRoutes(app, { env });
+registerSearchRoutes(app, { env });
 
 if (env.SLACK_BOT_TOKEN && env.SLACK_SIGNING_SECRET && env.SLACK_CHANNEL_ID) {
   registerSlackRoutes(app, { env });
