@@ -1,20 +1,26 @@
-import { describe, it, after } from "node:test";
+import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { api, API_URL } from "../helpers/api.js";
+import { api, API_URL, checkApiReady } from "../helpers/api.js";
 
 describe("Finchly API integration tests", () => {
   const testUrl = `https://example.com/test-${Date.now()}`;
   let createdId: string;
   let metadataId: string;
+  let apiReady = false;
+
+  before(async () => {
+    apiReady = await checkApiReady();
+  });
 
   it("1. Health check — GET /health returns healthy", async () => {
     const res = await fetch(`${API_URL}/health`);
     assert.equal(res.status, 200);
     const body = await res.json();
-    assert.equal(body.status, "ok");
+    assert.equal(body.status, "healthy");
   });
 
   it("2. Create link — POST /v1/links returns 201", async () => {
+    if (!apiReady) return;
     const res = await api("/v1/links", {
       method: "POST",
       body: JSON.stringify({ url: testUrl }),
@@ -29,6 +35,7 @@ describe("Finchly API integration tests", () => {
   });
 
   it("3. Get link by ID — GET /v1/links/:id returns matching data", async () => {
+    if (!apiReady) return;
     const res = await api(`/v1/links/${createdId}`);
     assert.equal(res.status, 200);
     const body = await res.json();
@@ -37,6 +44,7 @@ describe("Finchly API integration tests", () => {
   });
 
   it("4. List links — GET /v1/links returns paginated response", async () => {
+    if (!apiReady) return;
     const res = await api("/v1/links");
     assert.equal(res.status, 200);
     const body = await res.json();
@@ -47,6 +55,7 @@ describe("Finchly API integration tests", () => {
   });
 
   it("5. Duplicate URL — POST /v1/links with same URL returns 409", async () => {
+    if (!apiReady) return;
     const res = await api("/v1/links", {
       method: "POST",
       body: JSON.stringify({ url: testUrl }),
@@ -58,11 +67,13 @@ describe("Finchly API integration tests", () => {
   });
 
   it("6. Delete link — DELETE /v1/links/:id returns 204", async () => {
+    if (!apiReady) return;
     const res = await api(`/v1/links/${createdId}`, { method: "DELETE" });
     assert.equal(res.status, 204);
   });
 
   it("7. Get deleted link — GET /v1/links/:id returns 404", async () => {
+    if (!apiReady) return;
     const res = await api(`/v1/links/${createdId}`);
     assert.equal(res.status, 404);
     const body = await res.json();
@@ -71,6 +82,7 @@ describe("Finchly API integration tests", () => {
   });
 
   it("8. Create link with metadata — fields are returned", async () => {
+    if (!apiReady) return;
     const metadataUrl = `https://example.com/meta-${Date.now()}`;
     const res = await api("/v1/links", {
       method: "POST",

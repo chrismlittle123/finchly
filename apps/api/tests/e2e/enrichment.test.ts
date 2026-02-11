@@ -1,6 +1,6 @@
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { api, API_URL } from "../helpers/api.js";
+import { api, checkApiReady } from "../helpers/api.js";
 
 /** Poll GET /v1/links/:id until enrichedAt is set or timeout. */
 async function waitForEnrichment(id: string, timeoutMs = 30_000): Promise<Record<string, unknown>> {
@@ -35,12 +35,10 @@ const TEST_LINKS = [
 const createdIds: string[] = [];
 
 describe("E2E: POST → enrich → search → ask", () => {
+  let apiReady = false;
+
   before(async () => {
-    // Verify API is reachable
-    const health = await fetch(`${API_URL}/health`).catch(() => null);
-    if (!health || !health.ok) {
-      console.log(`  API not reachable at ${API_URL} — skipping e2e tests`);
-    }
+    apiReady = await checkApiReady();
   });
 
   after(async () => {
@@ -51,12 +49,7 @@ describe("E2E: POST → enrich → search → ask", () => {
   });
 
   it("creates links and waits for enrichment", { timeout: 120_000 }, async () => {
-    // Verify API is reachable
-    const health = await fetch(`${API_URL}/health`).catch(() => null);
-    if (!health || !health.ok) {
-      console.log(`    API not reachable at ${API_URL} — skipping`);
-      return;
-    }
+    if (!apiReady) return;
 
     // POST all links
     for (const link of TEST_LINKS) {
@@ -103,8 +96,7 @@ describe("E2E: POST → enrich → search → ask", () => {
   });
 
   it("searches links by semantic query", { timeout: 30_000 }, async () => {
-    const health = await fetch(`${API_URL}/health`).catch(() => null);
-    if (!health || !health.ok) return;
+    if (!apiReady) return;
     if (createdIds.length === 0) return;
 
     const res = await api("/v1/search", {
@@ -123,8 +115,7 @@ describe("E2E: POST → enrich → search → ask", () => {
   });
 
   it("asks a question about saved links", { timeout: 30_000 }, async () => {
-    const health = await fetch(`${API_URL}/health`).catch(() => null);
-    if (!health || !health.ok) return;
+    if (!apiReady) return;
     if (createdIds.length === 0) return;
 
     const res = await api("/v1/ask", {

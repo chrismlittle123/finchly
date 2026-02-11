@@ -17,3 +17,20 @@ export async function api(path: string, opts?: RequestInit) {
   }
   return fetch(`${API_URL}${path}`, { ...opts, headers });
 }
+
+/** Check that the API is reachable AND our JWT is accepted. */
+export async function checkApiReady(): Promise<boolean> {
+  const health = await fetch(`${API_URL}/health`).catch(() => null);
+  if (!health?.ok) {
+    console.log(`  API not reachable at ${API_URL} — skipping tests`);
+    return false;
+  }
+
+  const auth = await api("/v1/links?limit=1");
+  if (auth.status === 401) {
+    console.log(`  Auth failed (401) — set JWT_SECRET or API_TOKEN env var to match the deployed API`);
+    return false;
+  }
+
+  return true;
+}

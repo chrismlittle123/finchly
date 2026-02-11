@@ -1,16 +1,12 @@
 import { describe, it, before } from "node:test";
 import assert from "node:assert/strict";
-import { api, API_URL } from "../helpers/api.js";
+import { api, checkApiReady } from "../helpers/api.js";
 
 let apiReachable = false;
 
 describe("Search endpoint — POST /v1/search", () => {
   before(async () => {
-    const health = await fetch(`${API_URL}/health`).catch(() => null);
-    apiReachable = !!health?.ok;
-    if (!apiReachable) {
-      console.log(`  API not reachable at ${API_URL} — skipping search tests`);
-    }
+    apiReachable = await checkApiReady();
   });
 
   it("Search for 'AI' returns results with similarity scores", { timeout: 15_000 }, async () => {
@@ -121,11 +117,7 @@ describe("Search endpoint — POST /v1/search", () => {
 
 describe("Ask endpoint — POST /v1/ask", () => {
   before(async () => {
-    const health = await fetch(`${API_URL}/health`).catch(() => null);
-    apiReachable = !!health?.ok;
-    if (!apiReachable) {
-      console.log(`  API not reachable at ${API_URL} — skipping ask tests`);
-    }
+    apiReachable = await checkApiReady();
   });
 
   it("Ask 'What AI tools were shared?' returns answer + sources", { timeout: 30_000 }, async () => {
