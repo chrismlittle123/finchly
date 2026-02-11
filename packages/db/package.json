@@ -18,17 +18,17 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
-    "drizzle-orm": "^0.38.0",
-    "nanoid": "^5.0.0",
-    "pg": "^8.13.0"
+    "drizzle-orm": "^0.38.4",
+    "nanoid": "^5.1.6",
+    "pg": "^8.18.0"
   },
   "devDependencies": {
     "@finchly/typescript-config": "workspace:*",
-    "@types/pg": "^8.11.0",
-    "drizzle-kit": "^0.30.0",
+    "@types/pg": "^8.16.0",
+    "drizzle-kit": "^0.30.6",
     "eslint": "^9.39.2",
     "eslint-plugin-import": "^2.32.0",
-    "typescript": "^5.7.0",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0"
   }
 }
