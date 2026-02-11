@@ -50,7 +50,9 @@ export async function generateSummaryAndTags(
     messages: [{ role: "user", content: truncated }],
   });
 
-  const text = message.content[0].type === "text" ? message.content[0].text : "";
+  const raw = message.content[0].type === "text" ? message.content[0].text : "";
+  // Strip markdown code fences if present (Haiku sometimes wraps in ```json ... ```)
+  const text = raw.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
 
   try {
     const parsed = JSON.parse(text) as { summary: string; tags: string[] };
