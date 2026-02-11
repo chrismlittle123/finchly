@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@progression-labs/infra':
         specifier: github:chrismlittle123/infra
-        version: https://codeload.github.com/chrismlittle123/infra/tar.gz/5ca2a144324f7a08b2f1f18ce18dfbedbadfe2fc(typescript@5.9.3)
+        version: https://codeload.github.com/chrismlittle123/infra/tar.gz/f4eeea08ee5129ca4d922c3b8a0ceec0fc5f2e1c(typescript@5.9.3)
       '@pulumi/aws':
         specifier: ^6.0.0
         version: 6.83.2(typescript@5.9.3)
@@ -208,13 +208,13 @@ packages:
     resolution: {integrity: sha512-lp4qAiMTD4sNWW4DbKLBkfiMZ4jbAboJIGOQr5DvciMRI494OapieI9qiODpOt0XBr1LjIDy1xAGAnVs5supTA==}
     engines: {node: '>=14'}
 
-  '@progression-labs/infra@https://codeload.github.com/chrismlittle123/infra/tar.gz/5ca2a144324f7a08b2f1f18ce18dfbedbadfe2fc':
-    resolution: {tarball: https://codeload.github.com/chrismlittle123/infra/tar.gz/5ca2a144324f7a08b2f1f18ce18dfbedbadfe2fc}
-    version: 0.0.1
-
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@progression-labs/infra@https://codeload.github.com/chrismlittle123/infra/tar.gz/f4eeea08ee5129ca4d922c3b8a0ceec0fc5f2e1c':
+    resolution: {tarball: https://codeload.github.com/chrismlittle123/infra/tar.gz/f4eeea08ee5129ca4d922c3b8a0ceec0fc5f2e1c}
+    version: 0.0.1
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -1448,7 +1448,10 @@ snapshots:
 
   '@opentelemetry/semantic-conventions@1.28.0': {}
 
-  '@progression-labs/infra@https://codeload.github.com/chrismlittle123/infra/tar.gz/5ca2a144324f7a08b2f1f18ce18dfbedbadfe2fc(typescript@5.9.3)':
+  '@pkgjs/parseargs@0.11.0':
+    optional: true
+
+  '@progression-labs/infra@https://codeload.github.com/chrismlittle123/infra/tar.gz/f4eeea08ee5129ca4d922c3b8a0ceec0fc5f2e1c(typescript@5.9.3)':
     dependencies:
       '@pulumi/aws': 6.83.2(typescript@5.9.3)
       '@pulumi/gcp': 9.11.0(typescript@5.9.3)
@@ -1458,9 +1461,6 @@ snapshots:
       - supports-color
       - ts-node
       - typescript
-
-  '@pkgjs/parseargs@0.11.0':
-    optional: true
 
   '@protobufjs/aspromise@1.1.2': {}
 
