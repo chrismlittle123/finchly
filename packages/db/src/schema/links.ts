@@ -21,6 +21,11 @@ export const links = pgTable(
     slackMessageTs: text("slack_message_ts"),
     slackChannelId: text("slack_channel_id"),
     slackUserId: text("slack_user_id"),
+    description: text("description"),
+    imageUrl: text("image_url"),
+    rawContent: text("raw_content"),
+    sourceType: text("source_type"),
+    enrichedAt: timestamp("enriched_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

@@ -3,13 +3,18 @@ import type { FastifyInstance, FastifyReply } from "fastify";
 import { links, eq, desc, lt } from "@finchly/db";
 import type { Link } from "@finchly/db";
 
-function serializeLink(link: Link) {
+function serializeLink(link: Link, includeRawContent = false) {
   return {
     id: link.id,
     url: link.url,
     title: link.title,
+    description: link.description,
     summary: link.summary,
     tags: link.tags,
+    imageUrl: link.imageUrl,
+    sourceType: link.sourceType,
+    ...(includeRawContent && { rawContent: link.rawContent }),
+    enrichedAt: link.enrichedAt?.toISOString() ?? null,
     slackMessageTs: link.slackMessageTs,
     slackChannelId: link.slackChannelId,
     slackUserId: link.slackUserId,
@@ -31,13 +36,21 @@ const linkSchema = z.object({
   id: z.string(),
   url: z.string(),
   title: z.string().nullable(),
+  description: z.string().nullable(),
   summary: z.string().nullable(),
   tags: z.array(z.string()).nullable(),
+  imageUrl: z.string().nullable(),
+  sourceType: z.string().nullable(),
+  enrichedAt: z.string().nullable(),
   slackMessageTs: z.string().nullable(),
   slackChannelId: z.string().nullable(),
   slackUserId: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
+});
+
+const linkDetailSchema = linkSchema.extend({
+  rawContent: z.string().nullable(),
 });
 
 function buildListRoute(app: FastifyInstance) {
@@ -79,7 +92,7 @@ function buildListRoute(app: FastifyInstance) {
       const data = hasMore ? rows.slice(0, limit) : rows;
       const nextCursor = hasMore ? data[data.length - 1].createdAt.toISOString() : null;
 
-      return { data: data.map(serializeLink), nextCursor, hasMore };
+      return { data: data.map((row) => serializeLink(row)), nextCursor, hasMore };
     },
   });
 }
@@ -95,13 +108,13 @@ function buildGetRoute(app: FastifyInstance) {
     summary: "Get a link by ID",
     schema: {
       params: z.object({ id: z.string() }),
-      response: { 200: linkSchema },
+      response: { 200: linkDetailSchema },
     },
     handler: async (request) => {
       const { id } = request.params;
       const [row] = await db.select().from(links).where(eq(links.id, id));
       if (!row) throw AppError.notFound("Link", id);
-      return serializeLink(row);
+      return serializeLink(row, true);
     },
   });
 }

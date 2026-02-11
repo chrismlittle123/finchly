@@ -12,6 +12,7 @@
     "test:integration": "node --test --import tsx 'tests/integration/**/*.test.ts'"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
     "@finchly/db": "workspace:*",
     "@palindrom/fastify-api": "github:chrismlittle123/fastify-api",
     "@slack/web-api": "^7.8.0",

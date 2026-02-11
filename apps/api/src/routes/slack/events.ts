@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { links } from "@finchly/db";
 import { verifySlackSignature } from "../../lib/slack.js";
 import { extractUrls } from "../../lib/urls.js";
+import { enrichLink } from "../../services/enrichment/pipeline.js";
 import type { FinchlyEnv } from "../../config.js";
 
 const urlVerificationSchema = z.object({
@@ -96,6 +97,13 @@ export function registerSlackRoutes(
         .insert(links)
         .values(newLinks)
         .onConflictDoNothing({ target: links.url });
+
+      // Fire-and-forget enrichment (Slack requires response within 3s)
+      for (const url of urls) {
+        enrichLink(url, { db, env, logger: request.log }).catch((err) => {
+          request.log.error({ err, url }, "Background enrichment failed");
+        });
+      }
     }
 
     return reply.send({ ok: true });
