@@ -3,7 +3,7 @@ tier = "internal"
 status = "active"
 
 [extends]
-registry = "github:progression-labs/standards"
+registry = "github:chrismlittle123/standards"
 rulesets = ["typescript-frontend-internal"]
 
 [code.linting.eslint]
