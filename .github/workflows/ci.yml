@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   standards:
     name: Standards
@@ -20,6 +23,8 @@ jobs:
       - uses: chrismlittle123/github-actions/typescript-standards-check@main
         with:
           build-command: "pnpm build"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   lint:
     name: Lint

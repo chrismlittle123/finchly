@@ -1,7 +1,8 @@
+# syntax=docker/dockerfile:1
+
 # Stage 1: Install dependencies
 FROM node:20-slim AS deps
 
-ARG GITHUB_TOKEN
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
@@ -12,7 +13,8 @@ COPY apps/api/package.json apps/api/
 COPY packages/db/package.json packages/db/
 COPY packages/typescript-config/package.json packages/typescript-config/
 
-RUN GITHUB_TOKEN=${GITHUB_TOKEN} pnpm install --frozen-lockfile
+RUN --mount=type=secret,id=github_token \
+    GITHUB_TOKEN=$(cat /run/secrets/github_token) pnpm install --frozen-lockfile
 
 # Stage 2: Build
 FROM deps AS build
@@ -26,7 +28,6 @@ RUN pnpm --filter @finchly/db build && pnpm --filter @finchly/api build
 # Stage 3: Production
 FROM node:20-slim AS prod
 
-ARG GITHUB_TOKEN
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
@@ -36,7 +37,8 @@ COPY apps/api/package.json apps/api/
 COPY packages/db/package.json packages/db/
 COPY packages/typescript-config/package.json packages/typescript-config/
 
-RUN GITHUB_TOKEN=${GITHUB_TOKEN} pnpm install --frozen-lockfile --prod
+RUN --mount=type=secret,id=github_token \
+    GITHUB_TOKEN=$(cat /run/secrets/github_token) pnpm install --frozen-lockfile --prod
 
 # Copy built output
 COPY --from=build /app/packages/typescript-config/ packages/typescript-config/
