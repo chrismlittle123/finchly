@@ -41,17 +41,16 @@ export async function enrichGitHub(
   let rawContent: string | undefined;
   let title = repo.full_name;
 
+  const base = { owner: parsed.owner, repo: parsed.repo, ref };
+
   if (parsed.pathType === "blob" && parsed.filePath) {
-    // Specific file — fetch it directly
     title = `${repo.full_name}/${parsed.filePath}`;
-    rawContent = await fetchRawFile(parsed.owner, parsed.repo, ref, parsed.filePath, ctx);
+    rawContent = await fetchRawFile(base, parsed.filePath, ctx);
   } else if (parsed.pathType === "tree" && parsed.filePath) {
-    // Subdirectory — try README.md inside it
     title = `${repo.full_name}/${parsed.filePath}`;
-    rawContent = await fetchRawFile(parsed.owner, parsed.repo, ref, `${parsed.filePath}/README.md`, ctx);
+    rawContent = await fetchRawFile(base, `${parsed.filePath}/README.md`, ctx);
   } else {
-    // Root — fetch top-level README
-    rawContent = await fetchRawFile(parsed.owner, parsed.repo, ref, "README.md", ctx);
+    rawContent = await fetchRawFile(base, "README.md", ctx);
   }
 
   return {
@@ -64,19 +63,17 @@ export async function enrichGitHub(
 }
 
 async function fetchRawFile(
-  owner: string,
-  repo: string,
-  ref: string,
+  repo: { owner: string; repo: string; ref: string },
   path: string,
   ctx: EnricherContext,
 ): Promise<string | undefined> {
   try {
     const res = await fetch(
-      `https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${path}`,
+      `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${repo.ref}/${path}`,
       { headers: { "User-Agent": "finchly-bot" } },
     );
     if (res.ok) return res.text();
-    ctx.logger.debug({ status: res.status, path: `${owner}/${repo}/${ref}/${path}` }, "Raw file fetch returned non-200");
+    ctx.logger.debug({ status: res.status, path: `${repo.owner}/${repo.repo}/${repo.ref}/${path}` }, "Raw file fetch returned non-200");
   } catch {
     // Best-effort
   }

@@ -1,5 +1,5 @@
 import { links, eq } from "@finchly/db";
-import { detectSourceType } from "../../lib/source-type.js";
+import { detectSourceType, type SourceType } from "../../lib/source-type.js";
 import { enrichGitHub } from "./github.js";
 import { enrichX } from "./x.js";
 import { enrichWebpage } from "./webpage.js";
@@ -9,38 +9,58 @@ import type { EnrichmentResult, EnricherContext } from "./types.js";
 
 const MAX_DEPTH = 1;
 
+async function fetchSourceContent(
+  url: string,
+  sourceType: SourceType,
+  ctx: EnricherContext,
+): Promise<EnrichmentResult> {
+  try {
+    switch (sourceType) {
+      case "github": return await enrichGitHub(url, ctx);
+      case "x": return await enrichX(url, ctx);
+      default: return await enrichWebpage(url, ctx);
+    }
+  } catch (err) {
+    ctx.logger.warn({ err, url, sourceType }, "Source enricher failed, falling back to webpage");
+    try {
+      return await enrichWebpage(url, ctx);
+    } catch (fallbackErr) {
+      ctx.logger.error({ err: fallbackErr, url }, "Webpage fallback also failed");
+      return { sourceType };
+    }
+  }
+}
+
+async function insertExtractedUrls(
+  urls: string[],
+  ctx: EnricherContext,
+  depth: number,
+): Promise<void> {
+  for (const extractedUrl of urls) {
+    try {
+      await ctx.db
+        .insert(links)
+        .values({ url: extractedUrl })
+        .onConflictDoNothing({ target: links.url });
+
+      enrichLink(extractedUrl, ctx, depth + 1).catch((err) => {
+        ctx.logger.error({ err, url: extractedUrl }, "Extracted URL enrichment failed");
+      });
+    } catch (err) {
+      ctx.logger.warn({ err, url: extractedUrl }, "Failed to insert extracted URL");
+    }
+  }
+}
+
 export async function enrichLink(
   url: string,
   ctx: EnricherContext,
   depth = 0,
 ): Promise<void> {
   const sourceType = detectSourceType(url);
-  let result: EnrichmentResult;
+  const result = await fetchSourceContent(url, sourceType, ctx);
 
-  // Step 1: Source-specific enrichment
-  try {
-    switch (sourceType) {
-      case "github":
-        result = await enrichGitHub(url, ctx);
-        break;
-      case "x":
-        result = await enrichX(url, ctx);
-        break;
-      case "webpage":
-        result = await enrichWebpage(url, ctx);
-        break;
-    }
-  } catch (err) {
-    ctx.logger.warn({ err, url, sourceType }, "Source enricher failed, falling back to webpage");
-    try {
-      result = await enrichWebpage(url, ctx);
-    } catch (fallbackErr) {
-      ctx.logger.error({ err: fallbackErr, url }, "Webpage fallback also failed");
-      result = { sourceType };
-    }
-  }
-
-  // Step 2: LLM summary + tags
+  // LLM summary + tags
   let summary: string | undefined;
   let tags: string[] | undefined;
   const contentForLlm = result.rawContent ?? result.description ?? result.title;
@@ -56,7 +76,7 @@ export async function enrichLink(
     }
   }
 
-  // Step 3: Embedding
+  // Embedding
   let embedding: number[] | null = null;
   const textForEmbedding = [result.title, result.description, summary, result.rawContent]
     .filter(Boolean)
@@ -69,7 +89,7 @@ export async function enrichLink(
     }
   }
 
-  // Step 4: Update the link in the database
+  // Update the link in the database
   await ctx.db
     .update(links)
     .set({
@@ -98,21 +118,8 @@ export async function enrichLink(
     "Link enriched",
   );
 
-  // Step 5: Insert extracted URLs (e.g. from tweets) as new links
+  // Insert extracted URLs (e.g. from tweets) as new links
   if (depth < MAX_DEPTH && result.extractedUrls && result.extractedUrls.length > 0) {
-    for (const extractedUrl of result.extractedUrls) {
-      try {
-        await ctx.db
-          .insert(links)
-          .values({ url: extractedUrl })
-          .onConflictDoNothing({ target: links.url });
-
-        enrichLink(extractedUrl, ctx, depth + 1).catch((err) => {
-          ctx.logger.error({ err, url: extractedUrl }, "Extracted URL enrichment failed");
-        });
-      } catch (err) {
-        ctx.logger.warn({ err, url: extractedUrl }, "Failed to insert extracted URL");
-      }
-    }
+    await insertExtractedUrls(result.extractedUrls, ctx, depth);
   }
 }
