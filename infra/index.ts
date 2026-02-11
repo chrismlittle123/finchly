@@ -89,12 +89,30 @@ const jwtSecretSecret = new gcp.secretmanager.Secret("jwt-secret", {
   replication: { auto: {} },
 });
 
+const openaiApiKeySecret = new gcp.secretmanager.Secret("openai-api-key", {
+  secretId: `finchly-openai-api-key-${environment}`,
+  replication: { auto: {} },
+});
+
+const anthropicApiKeySecret = new gcp.secretmanager.Secret("anthropic-api-key", {
+  secretId: `finchly-anthropic-api-key-${environment}`,
+  replication: { auto: {} },
+});
+
+const firecrawlApiKeySecret = new gcp.secretmanager.Secret("firecrawl-api-key", {
+  secretId: `finchly-firecrawl-api-key-${environment}`,
+  replication: { auto: {} },
+});
+
 const allSecrets = [
   databaseUrlSecret,
   slackBotTokenSecret,
   slackSigningSecretSecret,
   slackChannelIdSecret,
   jwtSecretSecret,
+  openaiApiKeySecret,
+  anthropicApiKeySecret,
+  firecrawlApiKeySecret,
 ];
 
 // =============================================================================
@@ -151,6 +169,18 @@ const service = new gcp.cloudrunv2.Service("finchly-api", {
         {
           name: "JWT_SECRET",
           valueSource: { secretKeyRef: { secret: jwtSecretSecret.secretId, version: "latest" } },
+        },
+        {
+          name: "OPENAI_API_KEY",
+          valueSource: { secretKeyRef: { secret: openaiApiKeySecret.secretId, version: "latest" } },
+        },
+        {
+          name: "ANTHROPIC_API_KEY",
+          valueSource: { secretKeyRef: { secret: anthropicApiKeySecret.secretId, version: "latest" } },
+        },
+        {
+          name: "FIRECRAWL_API_KEY",
+          valueSource: { secretKeyRef: { secret: firecrawlApiKeySecret.secretId, version: "latest" } },
         },
         // TODO: Uncomment when Slack app is configured with real secret values
         // {
