@@ -141,6 +141,10 @@ const service = new gcp.cloudrunv2.Service("finchly-api", {
       },
       envs: [
         {
+          name: "NODE_ENV",
+          value: "production",
+        },
+        {
           name: "DATABASE_URL",
           valueSource: { secretKeyRef: { secret: databaseUrlSecret.secretId, version: "latest" } },
         },
