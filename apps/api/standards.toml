@@ -3,7 +3,7 @@ tier = "internal"
 status = "active"
 
 [extends]
-registry = "github:chrismlittle123/standards-private"
+registry = "github:chrismlittle123/standards"
 rulesets = ["typescript-internal"]
 
 [code.linting.eslint]
