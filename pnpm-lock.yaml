@@ -20,7 +20,7 @@ importers:
       '@finchly/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@palindrom/fastify-api':
+      '@progression-labs/fastify-api':
         specifier: github:chrismlittle123/fastify-api
         version: https://codeload.github.com/chrismlittle123/fastify-api/tar.gz/03d7e214f45a45a3d751ca3be0d07ae966763249(@opentelemetry/core@2.5.0(@opentelemetry/api@1.9.0))(@types/pg@8.16.0)(@types/react@19.2.13)(pg@8.18.0)(react@19.2.4)
       '@slack/web-api':
@@ -1614,7 +1614,7 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
 
-  '@palindrom/fastify-api@https://codeload.github.com/chrismlittle123/fastify-api/tar.gz/03d7e214f45a45a3d751ca3be0d07ae966763249':
+  '@progression-labs/fastify-api@https://codeload.github.com/chrismlittle123/fastify-api/tar.gz/03d7e214f45a45a3d751ca3be0d07ae966763249':
     resolution: {tarball: https://codeload.github.com/chrismlittle123/fastify-api/tar.gz/03d7e214f45a45a3d751ca3be0d07ae966763249}
     version: 0.1.0
     engines: {node: '>=20.0.0'}
@@ -6500,7 +6500,7 @@ snapshots:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 2.5.0(@opentelemetry/api@1.9.0)
 
-  '@palindrom/fastify-api@https://codeload.github.com/chrismlittle123/fastify-api/tar.gz/03d7e214f45a45a3d751ca3be0d07ae966763249(@opentelemetry/core@2.5.0(@opentelemetry/api@1.9.0))(@types/pg@8.16.0)(@types/react@19.2.13)(pg@8.18.0)(react@19.2.4)':
+  '@progression-labs/fastify-api@https://codeload.github.com/chrismlittle123/fastify-api/tar.gz/03d7e214f45a45a3d751ca3be0d07ae966763249(@opentelemetry/core@2.5.0(@opentelemetry/api@1.9.0))(@types/pg@8.16.0)(@types/react@19.2.13)(pg@8.18.0)(react@19.2.4)':
     dependencies:
       '@fastify/jwt': 9.1.0
       '@fastify/sensible': 6.0.4

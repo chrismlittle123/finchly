@@ -94,11 +94,11 @@ Bot uses RAG to search knowledge base and answer.
 | **Backend API** | Fastify (TypeScript) |
 | **Slack** | Bolt SDK (Node.js), integrated into Fastify |
 | **Database** | AWS RDS PostgreSQL + pgvector + Drizzle ORM |
-| **LLM** | `palindrom-ai/llm` (Python) — wraps Claude/OpenAI with observability |
-| **Embeddings** | `palindrom-ai/llm` — Voyage AI or OpenAI |
+| **LLM** | `progression-labs/llm` (Python) — wraps Claude/OpenAI with observability |
+| **Embeddings** | `progression-labs/llm` — Voyage AI or OpenAI |
 | **Frontend Hosting** | Vercel |
 | **Backend Hosting** | GCP Cloud Run |
-| **Infrastructure** | `palindrom-ai/infra` (Pulumi) — all cloud resources |
+| **Infrastructure** | `progression-labs/infra` (Pulumi) — all cloud resources |
 | **Schema** | Zod (TypeScript) → OpenAPI → Pydantic |
 
 ---
@@ -151,7 +151,7 @@ POST /slack/messages       -- Slack bot DM handler
 
 POST /enrich               -- Enrich a single link (internal)
 POST /search               -- Search knowledge base (internal)
-POST /chat                 -- RAG query (internal, calls palindrom-ai/llm)
+POST /chat                 -- RAG query (internal, calls progression-labs/llm)
 ```
 
 All routes defined with Zod schemas for request/response validation.
@@ -169,8 +169,8 @@ When a link is posted:
 4. If GitHub: fetch repo info via API
 5. If Arxiv: fetch paper abstract
 6. Scrape page content (for RAG context)
-7. Generate summary via palindrom-ai/llm (1-2 sentences)
-8. Generate tags via palindrom-ai/llm (from fixed list)
+7. Generate summary via progression-labs/llm (1-2 sentences)
+8. Generate tags via progression-labs/llm (from fixed list)
 9. Generate embedding
 10. Save to database
 ```
@@ -222,9 +222,9 @@ All responses include source links so user can click through.
 - [ ] Page metadata fetching (unfurl)
 - [ ] GitHub API integration
 - [ ] Arxiv abstract extraction
-- [ ] palindrom-ai/llm summarization
-- [ ] palindrom-ai/llm tagging
-- [ ] Embedding generation (via palindrom-ai/llm)
+- [ ] progression-labs/llm summarization
+- [ ] progression-labs/llm tagging
+- [ ] Embedding generation (via progression-labs/llm)
 - [ ] Verify: links fully enriched in database
 
 ### Week 3: Query Interface

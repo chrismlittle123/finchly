@@ -39,10 +39,10 @@ This document describes the technology layer that powers Finchly.
 | **Frontend** | Next.js (App Router) + Tailwind CSS | Web interface (V2, thin BFF layer) |
 | **Backend API** | Fastify (TypeScript) | API endpoints, webhooks, business logic |
 | **Database** | AWS RDS PostgreSQL + pgvector + Drizzle ORM | Storage, vector search, migrations |
-| **LLM** | `palindrom-ai/llm` (Python) | Summarization, Q&A, RAG, observability |
-| **Embeddings** | `palindrom-ai/llm` | Semantic search vectors (Voyage AI or OpenAI) |
+| **LLM** | `progression-labs/llm` (Python) | Summarization, Q&A, RAG, observability |
+| **Embeddings** | `progression-labs/llm` | Semantic search vectors (Voyage AI or OpenAI) |
 | **Slack** | Bolt SDK (Node.js) | Bot interactions, events |
-| **Infrastructure** | `palindrom-ai/infra` (Pulumi) | All cloud resources — never write raw Pulumi |
+| **Infrastructure** | `progression-labs/infra` (Pulumi) | All cloud resources — never write raw Pulumi |
 | **Schema** | Zod → OpenAPI → Pydantic | Type-safe APIs, single source of truth |
 | **Frontend Hosting** | Vercel | Next.js deployment |
 | **Backend Hosting** | GCP Cloud Run | Fastify API deployment |
@@ -209,7 +209,7 @@ app.command('/finchly', handleQuery);
 
 ## LLM Orchestration
 
-All LLM calls go through `palindrom-ai/llm` (Python). Never import Anthropic/OpenAI SDKs directly.
+All LLM calls go through `progression-labs/llm` (Python). Never import Anthropic/OpenAI SDKs directly.
 
 ### What the Package Provides
 
@@ -320,12 +320,12 @@ const rateLimit = {
 # Database (AWS RDS)
 DATABASE_URL=postgresql://...
 
-# LLM (via palindrom-ai/llm)
+# LLM (via progression-labs/llm)
 ANTHROPIC_API_KEY=sk-ant-...
 LANGFUSE_PUBLIC_KEY=pk-...
 LANGFUSE_SECRET_KEY=sk-...
 
-# Embeddings (via palindrom-ai/llm)
+# Embeddings (via progression-labs/llm)
 VOYAGE_API_KEY=...
 
 # Slack
@@ -341,10 +341,10 @@ API_URL=https://...
 
 ## Infrastructure
 
-All cloud resources are created and managed via `palindrom-ai/infra` (Pulumi). Never write raw Pulumi directly.
+All cloud resources are created and managed via `progression-labs/infra` (Pulumi). Never write raw Pulumi directly.
 
 ```typescript
-import { Api, Database, Secret } from 'palindrom-ai/infra';
+import { Api, Database, Secret } from 'progression-labs/infra';
 
 const db = new Database("Finchly");
 const slackToken = new Secret("SlackBotToken");
@@ -379,5 +379,5 @@ const api = new Api("FinchlyApi", {
                               │                          │
                               └──────────────────────────┘
 
-All resources provisioned via palindrom-ai/infra (Pulumi).
+All resources provisioned via progression-labs/infra (Pulumi).
 ```

@@ -1,5 +1,5 @@
-import { z } from "@palindrom/fastify-api";
-import type { AppConfigInput } from "@palindrom/fastify-api";
+import { z } from "@progression-labs/fastify-api";
+import type { AppConfigInput } from "@progression-labs/fastify-api";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),

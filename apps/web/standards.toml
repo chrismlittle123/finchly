@@ -3,7 +3,7 @@ tier = "internal"
 status = "active"
 
 [extends]
-registry = "github:palindrom-ai/standards"
+registry = "github:progression-labs/standards"
 rulesets = ["typescript-frontend-internal"]
 
 [code.linting.eslint]

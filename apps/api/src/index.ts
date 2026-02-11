@@ -1,4 +1,4 @@
-import { createApp } from "@palindrom/fastify-api";
+import { createApp } from "@progression-labs/fastify-api";
 import { loadConfig } from "./config.js";
 import { getDb } from "@finchly/db";
 import type { Database } from "@finchly/db";

@@ -1,4 +1,4 @@
-import { z, defineRoute, registerRoute, AppError } from "@palindrom/fastify-api";
+import { z, defineRoute, registerRoute, AppError } from "@progression-labs/fastify-api";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import { links, eq, desc, lt } from "@finchly/db";
 import type { Link } from "@finchly/db";

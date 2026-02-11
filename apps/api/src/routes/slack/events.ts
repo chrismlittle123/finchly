@@ -1,4 +1,4 @@
-import { z } from "@palindrom/fastify-api";
+import { z } from "@progression-labs/fastify-api";
 import type { FastifyInstance } from "fastify";
 import { links } from "@finchly/db";
 import { verifySlackSignature } from "../../lib/slack.js";

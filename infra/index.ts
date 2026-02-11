@@ -1,4 +1,4 @@
-import { defineConfig, createDatabase } from "@palindrom-ai/infra";
+import { defineConfig, createDatabase } from "@progression-labs/infra";
 import * as aws from "@pulumi/aws";
 import * as gcp from "@pulumi/gcp";
 import * as pulumi from "@pulumi/pulumi";

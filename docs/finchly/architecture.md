@@ -221,7 +221,7 @@ Skills can:
 
 ### Voice Mode
 - Same as chat interface, but spoken
-- Powered by `palindrom-ai/livekit-agents` (Python)
+- Powered by `progression-labs/livekit-agents` (Python)
 - Same Finchly Fastify API backend
 
 ---
