@@ -1,9 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
-import * as linksSchema from "./schema/links.js";
-import * as slackWorkspacesSchema from "./schema/slack-workspaces.js";
-
-const schema = { ...linksSchema, ...slackWorkspacesSchema };
+import * as schema from "./schema/links.js";
 
 let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 

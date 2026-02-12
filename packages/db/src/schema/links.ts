@@ -7,13 +7,40 @@ import {
   uniqueIndex,
   vector,
 } from "drizzle-orm/pg-core";
-import { linkId } from "../ids.js";
-import { slackWorkspaces } from "./slack-workspaces.js";
+import { nanoid } from "nanoid";
+
+// — slack_workspaces ——————————————————————————————————————————————————————————
+
+export const slackWorkspaces = pgTable(
+  "slack_workspaces",
+  {
+    id: text("id").primaryKey().$defaultFn(() => `swk_${nanoid(21)}`),
+    teamId: text("team_id").notNull(),
+    teamName: text("team_name").notNull(),
+    botToken: text("bot_token").notNull(),
+    botUserId: text("bot_user_id").notNull(),
+    installedBy: text("installed_by").notNull(),
+    scope: text("scope").notNull(),
+    uninstalledAt: timestamp("uninstalled_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [uniqueIndex("slack_workspaces_team_id_idx").on(table.teamId)],
+);
+
+export type SlackWorkspace = typeof slackWorkspaces.$inferSelect;
+export type NewSlackWorkspace = typeof slackWorkspaces.$inferInsert;
+
+// — links ————————————————————————————————————————————————————————————————————
 
 export const links = pgTable(
   "links",
   {
-    id: text("id").primaryKey().$defaultFn(() => linkId()),
+    id: text("id").primaryKey().$defaultFn(() => `lnk_${nanoid(21)}`),
     url: text("url").notNull(),
     title: text("title"),
     summary: text("summary"),
