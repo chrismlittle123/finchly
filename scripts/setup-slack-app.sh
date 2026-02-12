@@ -23,6 +23,11 @@ MANIFEST=$(cat <<EOF
     "background_color": "#1a1a2e"
   },
   "features": {
+    "app_home": {
+      "home_tab_enabled": false,
+      "messages_tab_enabled": true,
+      "messages_tab_read_only_enabled": false
+    },
     "bot_user": {
       "display_name": "finchly",
       "always_online": true
@@ -41,6 +46,7 @@ MANIFEST=$(cat <<EOF
         "groups:history",
         "groups:read",
         "im:history",
+        "im:write",
         "links:read",
         "links:write"
       ]
