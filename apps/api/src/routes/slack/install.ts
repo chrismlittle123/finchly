@@ -44,7 +44,7 @@ export function registerSlackInstallRoutes(
       redirect_uri: `${env.APP_BASE_URL}/slack/oauth/callback`,
     });
 
-    if (!result.ok || !result.team?.id) {
+    if (!result.ok || !result.team?.id || !result.access_token || !result.bot_user_id) {
       app.log.error({ result }, "Slack OAuth exchange failed");
       return reply.status(502).send({ error: { code: "OAUTH_FAILED", message: "Slack OAuth exchange failed" } });
     }
@@ -54,8 +54,8 @@ export function registerSlackInstallRoutes(
       .values({
         teamId: result.team.id,
         teamName: result.team.name ?? result.team.id,
-        botToken: result.access_token!,
-        botUserId: result.bot_user_id!,
+        botToken: result.access_token,
+        botUserId: result.bot_user_id,
         installedBy: result.authed_user?.id ?? "unknown",
         scope: result.scope ?? "",
       })
@@ -63,8 +63,8 @@ export function registerSlackInstallRoutes(
         target: slackWorkspaces.teamId,
         set: {
           teamName: result.team.name ?? result.team.id,
-          botToken: result.access_token!,
-          botUserId: result.bot_user_id!,
+          botToken: result.access_token,
+          botUserId: result.bot_user_id,
           installedBy: result.authed_user?.id ?? "unknown",
           scope: result.scope ?? "",
           uninstalledAt: null,
