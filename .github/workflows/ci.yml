@@ -27,6 +27,7 @@ jobs:
           build-command: "pnpm build"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONFORM_REGISTRY_TOKEN: ""
 
   lint:
     name: Lint
