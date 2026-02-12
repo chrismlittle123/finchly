@@ -3,6 +3,10 @@
 [metadata]
 tier = "internal"
 
+[extends]
+registry = "github:chrismlittle123/standards"
+rulesets = ["typescript-internal"]
+
 [code.linting.eslint]
 enabled = false          # ESLint lives at package level
 
@@ -23,20 +27,9 @@ extensions = ["ts", "tsx"]
 file_case = "kebab-case"
 folder_case = "kebab-case"
 
-[process.hooks]
-enabled = true
-# templates requires @standards-kit/conform >0.3.2 (unreleased, see standards-kit@ec2dceb)
-# templates = { "pre-commit" = "pnpm lint-staged", "pre-push" = "pnpm test" }
-
 [process.ci]
 enabled = true
 require_workflows = ["ci.yml"]
-
-[process.commits]
-enabled = true
-types = ["feat", "fix", "chore", "docs", "refactor", "test", "style", "perf", "ci", "build"]
-require_scope = false
-max_subject_length = 100
 
 [process.repo]
 enabled = true
