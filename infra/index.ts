@@ -109,6 +109,11 @@ const llmGatewayUrlSecret = new gcp.secretmanager.Secret("llm-gateway-url", {
   replication: { auto: {} },
 });
 
+const appBaseUrlSecret = new gcp.secretmanager.Secret("app-base-url", {
+  secretId: `finchly-app-base-url-${environment}`,
+  replication: { auto: {} },
+});
+
 const allSecrets = [
   databaseUrlSecret,
   slackClientIdSecret,
@@ -119,6 +124,7 @@ const allSecrets = [
   anthropicApiKeySecret,
   firecrawlApiKeySecret,
   llmGatewayUrlSecret,
+  appBaseUrlSecret,
 ];
 
 // =============================================================================
@@ -188,23 +194,22 @@ const service = new gcp.cloudrunv2.Service("finchly-api", {
           name: "FIRECRAWL_API_KEY",
           valueSource: { secretKeyRef: { secret: firecrawlApiKeySecret.secretId, version: "latest" } },
         },
-        // TODO: Uncomment when Slack app is configured with real secret values
-        // {
-        //   name: "SLACK_CLIENT_ID",
-        //   valueSource: { secretKeyRef: { secret: slackClientIdSecret.secretId, version: "latest" } },
-        // },
-        // {
-        //   name: "SLACK_CLIENT_SECRET",
-        //   valueSource: { secretKeyRef: { secret: slackClientSecretSecret.secretId, version: "latest" } },
-        // },
-        // {
-        //   name: "SLACK_SIGNING_SECRET",
-        //   valueSource: { secretKeyRef: { secret: slackSigningSecretSecret.secretId, version: "latest" } },
-        // },
-        // {
-        //   name: "APP_BASE_URL",
-        //   value: `https://${containerName}-${gcpProject}.${gcpRegion}.run.app`,
-        // },
+        {
+          name: "SLACK_CLIENT_ID",
+          valueSource: { secretKeyRef: { secret: slackClientIdSecret.secretId, version: "latest" } },
+        },
+        {
+          name: "SLACK_CLIENT_SECRET",
+          valueSource: { secretKeyRef: { secret: slackClientSecretSecret.secretId, version: "latest" } },
+        },
+        {
+          name: "SLACK_SIGNING_SECRET",
+          valueSource: { secretKeyRef: { secret: slackSigningSecretSecret.secretId, version: "latest" } },
+        },
+        {
+          name: "APP_BASE_URL",
+          valueSource: { secretKeyRef: { secret: appBaseUrlSecret.secretId, version: "latest" } },
+        },
       ],
     }],
   },
