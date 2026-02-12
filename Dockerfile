@@ -14,7 +14,7 @@ COPY packages/db/package.json packages/db/
 COPY packages/typescript-config/package.json packages/typescript-config/
 
 RUN --mount=type=secret,id=github_token \
-    GITHUB_TOKEN=$(cat /run/secrets/github_token) pnpm install --frozen-lockfile
+    HUSKY=0 GITHUB_TOKEN=$(cat /run/secrets/github_token) pnpm install --frozen-lockfile
 
 # Stage 2: Build
 FROM deps AS build
@@ -38,7 +38,7 @@ COPY packages/db/package.json packages/db/
 COPY packages/typescript-config/package.json packages/typescript-config/
 
 RUN --mount=type=secret,id=github_token \
-    GITHUB_TOKEN=$(cat /run/secrets/github_token) pnpm install --frozen-lockfile --prod
+    HUSKY=0 GITHUB_TOKEN=$(cat /run/secrets/github_token) pnpm install --frozen-lockfile --prod
 
 # Copy built output
 COPY --from=build /app/packages/typescript-config/ packages/typescript-config/
