@@ -20,6 +20,9 @@
         "channels:history",
         "channels:read",
         "chat:write",
+        "groups:history",
+        "groups:read",
+        "im:history",
         "links:read",
         "links:write"
       ]
@@ -31,6 +34,8 @@
       "bot_events": [
         "link_shared",
         "message.channels",
+        "message.groups",
+        "message.im",
         "app_uninstalled"
       ]
     },

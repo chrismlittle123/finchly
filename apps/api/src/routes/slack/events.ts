@@ -1,9 +1,11 @@
 import { z } from "@progression-labs/fastify-api";
 import type { FastifyInstance } from "fastify";
 import { links, slackWorkspaces, eq } from "@finchly/db";
+import { WebClient } from "@slack/web-api";
 import { verifySlackSignature } from "../../lib/slack.js";
 import { extractUrls } from "../../lib/urls.js";
 import { enrichLink } from "../../services/enrichment/pipeline.js";
+import { askQuestion, getRecentLinks } from "../../services/rag.js";
 import type { FinchlyEnv } from "../../config.js";
 
 const urlVerificationSchema = z.object({
@@ -25,6 +27,8 @@ const messageEventSchema = z.object({
   user: z.string().optional(),
   ts: z.string(),
   text: z.string().optional(),
+  channel_type: z.string().optional(),
+  bot_id: z.string().optional(),
 });
 
 const appUninstalledEventSchema = z.object({
@@ -38,6 +42,37 @@ const eventCallbackSchema = z.object({
 });
 
 const slackPayloadSchema = z.union([urlVerificationSchema, eventCallbackSchema]);
+
+function formatRagResponse(
+  answer: string,
+  sources: Array<{ url: string; title: string | null }>,
+): string {
+  let text = answer;
+
+  if (sources.length > 0) {
+    text += "\n\n*Sources:*\n";
+    text += sources
+      .map((s) => `• <${s.url}|${s.title ?? s.url}>`)
+      .join("\n");
+  }
+
+  return text;
+}
+
+function formatRecentLinks(
+  recentLinks: Array<{ url: string; title: string | null }>,
+): string {
+  if (recentLinks.length === 0) {
+    return "No links saved yet in this workspace. Try sharing some links in a channel I'm in!";
+  }
+
+  let text = "*Recent links:*\n";
+  text += recentLinks
+    .map((l) => `• <${l.url}|${l.title ?? l.url}>`)
+    .join("\n");
+
+  return text;
+}
 
 export function registerSlackRoutes(
   app: FastifyInstance,
@@ -94,6 +129,55 @@ export function registerSlackRoutes(
       return reply.send({ ok: true });
     }
 
+    // Handle DM messages — fire-and-forget RAG query
+    if (event.type === "message" && event.channel_type === "im") {
+      if (event.bot_id || !event.text) {
+        return reply.send({ ok: true });
+      }
+
+      const channel = event.channel;
+      const text = event.text;
+      const slackClient = new WebClient(workspace.botToken);
+
+      // Fire-and-forget so we respond to Slack within 3s
+      (async () => {
+        try {
+          const trimmed = text.trim().toLowerCase();
+
+          let responseText: string;
+
+          if (trimmed === "recent" || trimmed === "latest") {
+            const recent = await getRecentLinks(db, workspace.id);
+            responseText = formatRecentLinks(recent);
+          } else {
+            if (!env.OPENAI_API_KEY || !env.LLM_GATEWAY_URL) {
+              responseText = "RAG search is not configured. Please contact your admin.";
+            } else {
+              const result = await askQuestion(text, {
+                db,
+                env,
+                logger: request.log,
+                workspaceId: workspace.id,
+              });
+              responseText = result.sources.length > 0
+                ? formatRagResponse(result.answer, result.sources)
+                : "I don't have any relevant links to answer that question. Try sharing some links in a channel I'm in!";
+            }
+          }
+
+          await slackClient.chat.postMessage({
+            channel,
+            text: responseText,
+          });
+        } catch (err) {
+          request.log.error({ err, channel }, "Failed to handle DM query");
+        }
+      })();
+
+      return reply.send({ ok: true });
+    }
+
+    // Handle channel messages and link_shared — extract URLs
     let urls: string[] = [];
     let channelId: string | undefined;
     let userId: string | undefined;

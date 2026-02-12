@@ -7,6 +7,7 @@ const BOT_SCOPES = [
   "channels:history",
   "channels:read",
   "chat:write",
+  "im:history",
   "links:read",
   "links:write",
 ].join(",");

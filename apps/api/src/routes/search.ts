@@ -4,7 +4,7 @@ import { links, desc, gt, and, isNotNull, cosineDistance, sql } from "@finchly/d
 import type { FinchlyEnv } from "../config.js";
 import { generateEmbedding } from "../services/enrichment/embedding.js";
 import type { EnricherContext } from "../services/enrichment/types.js";
-import { LLMClient } from "@chrismlittle123/llm-client";
+import { askQuestion } from "../services/rag.js";
 
 const searchResultSchema = z.object({
   id: z.string(),
@@ -82,37 +82,6 @@ function buildSearchRoute(app: FastifyInstance, env: FinchlyEnv) {
   });
 }
 
-async function generateAnswer(
-  question: string,
-  results: Array<{ url: string; title: string | null; summary: string | null; rawContent: string | null }>,
-  gatewayUrl: string,
-): Promise<string> {
-  const context = results
-    .map((r, i) => {
-      const content = r.rawContent ? r.rawContent.slice(0, 2000) : r.summary ?? "No content available";
-      return `[${i + 1}] ${r.title ?? r.url}\nURL: ${r.url}\n${content}`;
-    })
-    .join("\n\n---\n\n");
-
-  const client = new LLMClient({ baseUrl: gatewayUrl });
-  const completion = await client.complete({
-    model: "claude-haiku-4-5-20251001",
-    messages: [
-      {
-        role: "system",
-        content: `You are Finchly, a helpful assistant that answers questions based on the user's saved links. Use ONLY the provided context to answer. Reference sources by their number [1], [2], etc. If the context doesn't contain enough information, say so honestly. Be concise.`,
-      },
-      {
-        role: "user",
-        content: `Context from saved links:\n\n${context}\n\n---\n\nQuestion: ${question}`,
-      },
-    ],
-    fallbacks: ["claude-3-5-haiku-latest"],
-  });
-
-  return completion.content;
-}
-
 function buildAskRoute(app: FastifyInstance, env: FinchlyEnv) {
   const db = app.finchlyDb;
 
@@ -148,54 +117,7 @@ function buildAskRoute(app: FastifyInstance, env: FinchlyEnv) {
 
       const { question } = request.body;
 
-      const ctx: EnricherContext = {
-        db,
-        env,
-        logger: request.log,
-      };
-
-      // Step 1: Embed the question
-      const queryEmbedding = await generateEmbedding(question, ctx);
-      if (!queryEmbedding) {
-        throw AppError.badRequest("Failed to generate query embedding");
-      }
-
-      // Step 2: Find relevant links
-      const similarity = sql<number>`1 - (${cosineDistance(links.embedding, queryEmbedding)})`;
-
-      const results = await db
-        .select({
-          id: links.id,
-          url: links.url,
-          title: links.title,
-          summary: links.summary,
-          rawContent: links.rawContent,
-          similarity,
-        })
-        .from(links)
-        .where(and(isNotNull(links.embedding), gt(similarity, 0.3)))
-        .orderBy((t) => desc(t.similarity))
-        .limit(5);
-
-      if (results.length === 0) {
-        return {
-          answer: "I don't have any relevant links to answer that question.",
-          sources: [],
-        };
-      }
-
-      // Step 3-4: Build context and ask LLM
-      const answer = await generateAnswer(question, results, env.LLM_GATEWAY_URL);
-
-      return {
-        answer,
-        sources: results.map((r) => ({
-          id: r.id,
-          url: r.url,
-          title: r.title,
-          similarity: r.similarity,
-        })),
-      };
+      return askQuestion(question, { db, env, logger: request.log });
     },
   });
 }

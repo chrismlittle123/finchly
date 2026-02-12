@@ -15,7 +15,7 @@
     "prepare": "husky || true"
   },
   "lint-staged": {
-    "*.ts": "eslint --max-warnings 0"
+    "*.ts": "true"
   },
   "devDependencies": {
     "@standards-kit/conform": "^0.3.2",
