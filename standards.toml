@@ -23,6 +23,11 @@ extensions = ["ts", "tsx"]
 file_case = "kebab-case"
 folder_case = "kebab-case"
 
+[process.hooks]
+enabled = true
+# templates requires @standards-kit/conform >0.3.2 (unreleased, see standards-kit@ec2dceb)
+# templates = { "pre-commit" = "pnpm lint-staged", "pre-push" = "pnpm test" }
+
 [process.ci]
 enabled = true
 require_workflows = ["ci.yml"]

@@ -11,9 +11,15 @@
     "db:generate": "pnpm --filter @finchly/db db:generate",
     "db:migrate": "pnpm --filter @finchly/db db:migrate",
     "db:push": "pnpm --filter @finchly/db db:push",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.ts": "eslint --max-warnings 0"
   },
   "devDependencies": {
-    "@standards-kit/conform": "^0.3.2"
+    "@standards-kit/conform": "^0.3.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
   }
 }
