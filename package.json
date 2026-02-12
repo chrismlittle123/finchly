@@ -12,7 +12,7 @@
     "db:migrate": "pnpm --filter @finchly/db db:migrate",
     "db:push": "pnpm --filter @finchly/db db:push",
     "test": "pnpm -r test",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "lint-staged": {
     "*.ts": "eslint --max-warnings 0"
