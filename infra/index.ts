@@ -114,6 +114,13 @@ const appBaseUrlSecret = new gcp.secretmanager.Secret("app-base-url", {
   replication: { auto: {} },
 });
 
+const appBaseUrl = config.get("appBaseUrl") || `https://finchly-api-${environment}-10492061315.${gcpRegion}.run.app`;
+
+new gcp.secretmanager.SecretVersion("app-base-url-version", {
+  secret: appBaseUrlSecret.id,
+  secretData: appBaseUrl,
+});
+
 const allSecrets = [
   databaseUrlSecret,
   slackClientIdSecret,
