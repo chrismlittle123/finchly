@@ -13,7 +13,7 @@
   "oauth_config": {
     "redirect_urls": [
       "http://localhost:3001/slack/oauth/callback",
-      "https://finchly-api-dev.europe-west2.run.app/slack/oauth/callback"
+      "https://finchly-api-dev-10492061315.europe-west2.run.app/slack/oauth/callback"
     ],
     "scopes": {
       "bot": [
@@ -27,7 +27,7 @@
   },
   "settings": {
     "event_subscriptions": {
-      "request_url": "https://finchly-api-dev.europe-west2.run.app/slack/events",
+      "request_url": "https://finchly-api-dev-10492061315.europe-west2.run.app/slack/events",
       "bot_events": [
         "link_shared",
         "message.channels",
