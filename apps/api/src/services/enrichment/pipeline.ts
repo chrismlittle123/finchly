@@ -41,7 +41,7 @@ async function insertExtractedUrls(
       await ctx.db
         .insert(links)
         .values({ url: extractedUrl })
-        .onConflictDoNothing({ target: links.url });
+        .onConflictDoNothing({ target: [links.url, links.workspaceId] });
 
       enrichLink(extractedUrl, ctx, depth + 1).catch((err) => {
         ctx.logger.error({ err, url: extractedUrl }, "Extracted URL enrichment failed");

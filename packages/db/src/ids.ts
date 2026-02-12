@@ -7,3 +7,7 @@ export function createId(prefix: string): string {
 export function linkId(): string {
   return createId("lnk");
 }
+
+export function slackWorkspaceId(): string {
+  return createId("swk");
+}

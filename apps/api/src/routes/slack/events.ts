@@ -1,6 +1,6 @@
 import { z } from "@progression-labs/fastify-api";
 import type { FastifyInstance } from "fastify";
-import { links } from "@finchly/db";
+import { links, slackWorkspaces, eq } from "@finchly/db";
 import { verifySlackSignature } from "../../lib/slack.js";
 import { extractUrls } from "../../lib/urls.js";
 import { enrichLink } from "../../services/enrichment/pipeline.js";
@@ -27,9 +27,14 @@ const messageEventSchema = z.object({
   text: z.string().optional(),
 });
 
+const appUninstalledEventSchema = z.object({
+  type: z.literal("app_uninstalled"),
+});
+
 const eventCallbackSchema = z.object({
   type: z.literal("event_callback"),
-  event: z.union([linkSharedEventSchema, messageEventSchema]),
+  team_id: z.string(),
+  event: z.union([linkSharedEventSchema, messageEventSchema, appUninstalledEventSchema]),
 });
 
 const slackPayloadSchema = z.union([urlVerificationSchema, eventCallbackSchema]);
@@ -66,7 +71,28 @@ export function registerSlackRoutes(
       return reply.send({ challenge: payload.challenge });
     }
 
-    const { event } = payload;
+    const { event, team_id } = payload;
+
+    // Look up workspace by team_id
+    const workspace = await db.query.slackWorkspaces.findFirst({
+      where: eq(slackWorkspaces.teamId, team_id),
+    });
+
+    if (!workspace || workspace.uninstalledAt) {
+      request.log.warn({ team_id }, "Event from unknown or uninstalled workspace");
+      return reply.send({ ok: true });
+    }
+
+    // Handle app_uninstalled event
+    if (event.type === "app_uninstalled") {
+      await db
+        .update(slackWorkspaces)
+        .set({ uninstalledAt: new Date(), updatedAt: new Date() })
+        .where(eq(slackWorkspaces.teamId, team_id));
+
+      request.log.info({ team_id }, "Slack workspace uninstalled");
+      return reply.send({ ok: true });
+    }
 
     let urls: string[] = [];
     let channelId: string | undefined;
@@ -85,9 +111,10 @@ export function registerSlackRoutes(
       messageTs = event.ts;
     }
 
-    if (urls.length > 0 && channelId === env.SLACK_CHANNEL_ID) {
+    if (urls.length > 0) {
       const newLinks = urls.map((url) => ({
         url,
+        workspaceId: workspace.id,
         slackChannelId: channelId ?? "",
         slackUserId: userId,
         slackMessageTs: messageTs,
@@ -96,7 +123,7 @@ export function registerSlackRoutes(
       await db
         .insert(links)
         .values(newLinks)
-        .onConflictDoNothing({ target: links.url });
+        .onConflictDoNothing({ target: [links.url, links.workspaceId] });
 
       // Fire-and-forget enrichment (Slack requires response within 3s)
       for (const url of urls) {

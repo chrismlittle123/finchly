@@ -4,9 +4,10 @@ import type { AppConfigInput } from "@progression-labs/fastify-api";
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(32),
-  SLACK_BOT_TOKEN: z.string().startsWith("xoxb-").optional(),
+  SLACK_CLIENT_ID: z.string().min(1).optional(),
+  SLACK_CLIENT_SECRET: z.string().min(1).optional(),
   SLACK_SIGNING_SECRET: z.string().min(1).optional(),
-  SLACK_CHANNEL_ID: z.string().min(1).optional(),
+  APP_BASE_URL: z.string().url().optional(),
   FIRECRAWL_API_KEY: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),

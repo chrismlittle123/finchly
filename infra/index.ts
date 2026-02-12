@@ -69,18 +69,18 @@ new gcp.secretmanager.SecretVersion("database-url-version", {
   secretData: databaseUrl,
 });
 
-const slackBotTokenSecret = new gcp.secretmanager.Secret("slack-bot-token", {
-  secretId: `finchly-slack-bot-token-${environment}`,
+const slackClientIdSecret = new gcp.secretmanager.Secret("slack-client-id", {
+  secretId: `finchly-slack-client-id-${environment}`,
+  replication: { auto: {} },
+});
+
+const slackClientSecretSecret = new gcp.secretmanager.Secret("slack-client-secret", {
+  secretId: `finchly-slack-client-secret-${environment}`,
   replication: { auto: {} },
 });
 
 const slackSigningSecretSecret = new gcp.secretmanager.Secret("slack-signing-secret", {
   secretId: `finchly-slack-signing-secret-${environment}`,
-  replication: { auto: {} },
-});
-
-const slackChannelIdSecret = new gcp.secretmanager.Secret("slack-channel-id", {
-  secretId: `finchly-slack-channel-id-${environment}`,
   replication: { auto: {} },
 });
 
@@ -111,9 +111,9 @@ const llmGatewayUrlSecret = new gcp.secretmanager.Secret("llm-gateway-url", {
 
 const allSecrets = [
   databaseUrlSecret,
-  slackBotTokenSecret,
+  slackClientIdSecret,
+  slackClientSecretSecret,
   slackSigningSecretSecret,
-  slackChannelIdSecret,
   jwtSecretSecret,
   openaiApiKeySecret,
   anthropicApiKeySecret,
@@ -190,16 +190,20 @@ const service = new gcp.cloudrunv2.Service("finchly-api", {
         },
         // TODO: Uncomment when Slack app is configured with real secret values
         // {
-        //   name: "SLACK_BOT_TOKEN",
-        //   valueSource: { secretKeyRef: { secret: slackBotTokenSecret.secretId, version: "latest" } },
+        //   name: "SLACK_CLIENT_ID",
+        //   valueSource: { secretKeyRef: { secret: slackClientIdSecret.secretId, version: "latest" } },
+        // },
+        // {
+        //   name: "SLACK_CLIENT_SECRET",
+        //   valueSource: { secretKeyRef: { secret: slackClientSecretSecret.secretId, version: "latest" } },
         // },
         // {
         //   name: "SLACK_SIGNING_SECRET",
         //   valueSource: { secretKeyRef: { secret: slackSigningSecretSecret.secretId, version: "latest" } },
         // },
         // {
-        //   name: "SLACK_CHANNEL_ID",
-        //   valueSource: { secretKeyRef: { secret: slackChannelIdSecret.secretId, version: "latest" } },
+        //   name: "APP_BASE_URL",
+        //   value: `https://${containerName}-${gcpProject}.${gcpRegion}.run.app`,
         // },
       ],
     }],

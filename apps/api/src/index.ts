@@ -5,6 +5,7 @@ import type { Database } from "@finchly/db";
 import { registerLinkRoutes } from "./routes/links.js";
 import { registerSearchRoutes } from "./routes/search.js";
 import { registerSlackRoutes } from "./routes/slack/events.js";
+import { registerSlackInstallRoutes } from "./routes/slack/install.js";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -39,8 +40,9 @@ app.addContentTypeParser(
 registerLinkRoutes(app, { env });
 registerSearchRoutes(app, { env });
 
-if (env.SLACK_BOT_TOKEN && env.SLACK_SIGNING_SECRET && env.SLACK_CHANNEL_ID) {
+if (env.SLACK_SIGNING_SECRET && env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   registerSlackRoutes(app, { env });
+  registerSlackInstallRoutes(app, { env });
 } else {
   app.log.warn("Slack env vars not set — Slack routes disabled");
 }

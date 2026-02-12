@@ -1,4 +1,9 @@
 export { links, type Link, type NewLink } from "./schema/links.js";
+export {
+  slackWorkspaces,
+  type SlackWorkspace,
+  type NewSlackWorkspace,
+} from "./schema/slack-workspaces.js";
 export { getDb, type Database } from "./client.js";
-export { createId, linkId } from "./ids.js";
-export { eq, desc, sql, lt, gt, and, isNotNull, cosineDistance } from "drizzle-orm";
+export { createId, linkId, slackWorkspaceId } from "./ids.js";
+export { eq, desc, sql, lt, gt, and, isNotNull, isNull, cosineDistance } from "drizzle-orm";

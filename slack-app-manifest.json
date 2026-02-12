@@ -1,0 +1,41 @@
+{
+  "display_information": {
+    "name": "Finchly",
+    "description": "Save and organize links shared in Slack",
+    "background_color": "#1a1a2e"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Finchly",
+      "always_online": true
+    }
+  },
+  "oauth_config": {
+    "redirect_urls": [
+      "http://localhost:3001/slack/oauth/callback",
+      "https://finchly-api-dev.europe-west2.run.app/slack/oauth/callback"
+    ],
+    "scopes": {
+      "bot": [
+        "channels:history",
+        "channels:read",
+        "chat:write",
+        "links:read",
+        "links:write"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "https://finchly-api-dev.europe-west2.run.app/slack/events",
+      "bot_events": [
+        "link_shared",
+        "message.channels",
+        "app_uninstalled"
+      ]
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

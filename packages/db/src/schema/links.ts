@@ -8,6 +8,7 @@ import {
   vector,
 } from "drizzle-orm/pg-core";
 import { linkId } from "../ids.js";
+import { slackWorkspaces } from "./slack-workspaces.js";
 
 export const links = pgTable(
   "links",
@@ -18,6 +19,7 @@ export const links = pgTable(
     summary: text("summary"),
     tags: jsonb("tags").$type<string[]>().default([]),
     embedding: vector("embedding", { dimensions: 1536 }),
+    workspaceId: text("workspace_id").references(() => slackWorkspaces.id),
     slackMessageTs: text("slack_message_ts"),
     slackChannelId: text("slack_channel_id"),
     slackUserId: text("slack_user_id"),
@@ -34,7 +36,7 @@ export const links = pgTable(
       .defaultNow(),
   },
   (table) => [
-    uniqueIndex("links_url_idx").on(table.url),
+    uniqueIndex("links_url_workspace_idx").on(table.url, table.workspaceId),
     index("links_tags_idx").using("gin", table.tags),
     index("links_created_at_idx").on(table.createdAt),
     index("links_embedding_idx").using(
