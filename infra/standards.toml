@@ -20,3 +20,9 @@ enabled = false  # separate lockfile
 
 [code.naming]
 enabled = false  # Pulumi conventions differ
+
+[process.hooks]
+enabled = false  # hooks live at repo root
+
+[process.repo]
+enabled = false  # checked at repo root

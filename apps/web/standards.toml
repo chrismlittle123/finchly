@@ -28,3 +28,9 @@ extensions = ["ts", "tsx"]
 file_case = "kebab-case"
 folder_case = "kebab-case"
 allow_dynamic_routes = true
+
+[process.hooks]
+enabled = false  # hooks live at repo root
+
+[process.repo]
+enabled = false  # checked at repo root
