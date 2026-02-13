@@ -27,7 +27,7 @@ export async function askQuestion(question: string, opts: AskQuestionOpts): Prom
 
   const similarity = sql<number>`1 - (${cosineDistance(links.embedding, queryEmbedding)})`;
 
-  const conditions = [isNotNull(links.embedding), gt(similarity, 0.3)];
+  const conditions = [isNotNull(links.embedding), gt(similarity, 0.1)];
   if (opts.workspaceId) {
     conditions.push(eq(links.workspaceId, opts.workspaceId));
   }
