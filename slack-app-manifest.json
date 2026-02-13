@@ -13,7 +13,16 @@
     "bot_user": {
       "display_name": "Finchly",
       "always_online": true
-    }
+    },
+    "slash_commands": [
+      {
+        "command": "/finchly-backfill",
+        "url": "https://finchly-api-dev-10492061315.europe-west2.run.app/slack/commands",
+        "description": "Import all links from this channel's history",
+        "usage_hint": "",
+        "should_escape": false
+      }
+    ]
   },
   "oauth_config": {
     "redirect_urls": [
@@ -25,6 +34,7 @@
         "channels:history",
         "channels:read",
         "chat:write",
+        "commands",
         "groups:history",
         "groups:read",
         "im:history",
@@ -35,6 +45,10 @@
     }
   },
   "settings": {
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "https://finchly-api-dev-10492061315.europe-west2.run.app/slack/commands"
+    },
     "event_subscriptions": {
       "request_url": "https://finchly-api-dev-10492061315.europe-west2.run.app/slack/events",
       "bot_events": [

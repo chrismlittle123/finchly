@@ -31,7 +31,16 @@ MANIFEST=$(cat <<EOF
     "bot_user": {
       "display_name": "finchly",
       "always_online": true
-    }
+    },
+    "slash_commands": [
+      {
+        "command": "/finchly-backfill",
+        "url": "${APP_BASE_URL}/slack/commands",
+        "description": "Import all links from this channel's history",
+        "usage_hint": "",
+        "should_escape": false
+      }
+    ]
   },
   "oauth_config": {
     "redirect_urls": [
@@ -48,11 +57,16 @@ MANIFEST=$(cat <<EOF
         "im:history",
         "im:write",
         "links:read",
-        "links:write"
+        "links:write",
+        "commands"
       ]
     }
   },
   "settings": {
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "${APP_BASE_URL}/slack/commands"
+    },
     "event_subscriptions": {
       "request_url": "${APP_BASE_URL}/slack/events",
       "bot_events": [
@@ -73,6 +87,7 @@ EOF
 
 echo "Updating Slack app manifest for ${SLACK_APP_ID}..."
 echo "  Events URL: ${APP_BASE_URL}/slack/events"
+echo "  Commands URL: ${APP_BASE_URL}/slack/commands"
 echo "  OAuth callback: ${APP_BASE_URL}/slack/oauth/callback"
 
 RESPONSE=$(curl -s -X POST https://slack.com/api/apps.manifest.update \

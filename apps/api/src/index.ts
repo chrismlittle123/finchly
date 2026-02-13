@@ -6,6 +6,7 @@ import { registerLinkRoutes } from "./routes/links.js";
 import { registerSearchRoutes } from "./routes/search.js";
 import { registerSlackRoutes } from "./routes/slack/events.js";
 import { registerSlackInstallRoutes } from "./routes/slack/install.js";
+import { registerSlackBackfillRoutes } from "./routes/slack/backfill.js";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -36,6 +37,25 @@ app.addContentTypeParser(
   },
 );
 
+// Content type parser for Slack slash commands (application/x-www-form-urlencoded)
+app.addContentTypeParser(
+  "application/x-www-form-urlencoded",
+  { parseAs: "buffer" },
+  (req, body, done) => {
+    (req as unknown as { rawBody: Buffer }).rawBody = body as Buffer;
+    try {
+      const params = new URLSearchParams((body as Buffer).toString("utf-8"));
+      const parsed: Record<string, string> = {};
+      for (const [key, value] of params) {
+        parsed[key] = value;
+      }
+      done(null, parsed);
+    } catch (err) {
+      done(err as Error, undefined);
+    }
+  },
+);
+
 // Register routes
 registerLinkRoutes(app, { env });
 registerSearchRoutes(app, { env });
@@ -43,6 +63,7 @@ registerSearchRoutes(app, { env });
 if (env.SLACK_SIGNING_SECRET && env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   registerSlackRoutes(app, { env });
   registerSlackInstallRoutes(app, { env });
+  registerSlackBackfillRoutes(app, { env });
 } else {
   app.log.warn("Slack env vars not set — Slack routes disabled");
 }

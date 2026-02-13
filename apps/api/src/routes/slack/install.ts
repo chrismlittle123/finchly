@@ -13,6 +13,7 @@ const BOT_SCOPES = [
   "im:write",
   "links:read",
   "links:write",
+  "commands",
 ].join(",");
 
 export function registerSlackInstallRoutes(
