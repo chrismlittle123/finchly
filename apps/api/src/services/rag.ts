@@ -44,7 +44,7 @@ export async function askQuestion(question: string, opts: AskQuestionOpts): Prom
     .from(links)
     .where(and(...conditions))
     .orderBy((t) => desc(t.similarity))
-    .limit(5);
+    .limit(10);
 
   if (results.length === 0) {
     return { answer: "I don't have any relevant links to answer that question.", sources: [] };
